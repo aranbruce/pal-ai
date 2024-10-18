@@ -477,7 +477,11 @@ export async function continueConversation(
                     />
                   </div>
                 );
-                contentStream.update(<Spinner />);
+                contentStream.update(
+                  <h4 className="animate-text_loading">
+                    Reviewing search results...
+                  </h4>,
+                );
                 displayStream.update(displayContent);
                 break;
               }
@@ -495,7 +499,11 @@ export async function continueConversation(
                     />
                   </div>
                 );
-                contentStream.update(<Spinner />);
+                contentStream.update(
+                  <h4 className="animate-text_loading">
+                    Reviewing news results...
+                  </h4>,
+                );
                 displayStream.update(displayContent);
                 break;
               }
@@ -577,7 +585,11 @@ export async function continueConversation(
                     )}
                   </div>
                 );
-                contentStream.update(<Spinner />);
+                contentStream.update(
+                  <h4 className="animate-text_loading">
+                    Reviewing the top movies...
+                  </h4>,
+                );
                 displayStream.update(displayContent);
                 break;
               }
@@ -593,7 +605,11 @@ export async function continueConversation(
                     )}
                   </div>
                 );
-                contentStream.update(<Spinner />);
+                contentStream.update(
+                  <h4 className="animate-text_loading">
+                    Reviewing the top movies...
+                  </h4>,
+                );
                 displayStream.update(displayContent);
                 break;
               }

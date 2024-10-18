@@ -59,7 +59,11 @@ export default async function getWebResults({
 
     const data = await response.json();
 
-    let results = data.web.results;
+    let results = data?.web?.results;
+
+    if (!results) {
+      throw new Error("No results found");
+    }
 
     results = results.map((result: any, index: number) => ({
       id: index + 1,

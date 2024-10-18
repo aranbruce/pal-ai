@@ -154,7 +154,11 @@ export type GetWeatherForecastRequest = z.infer<
 >;
 
 export const getWebResultsRequestSchema = z.object({
-  query: z.string().describe("The search query or topic to search for news on"),
+  query: z
+    .string()
+    .describe(
+      "The search query to search for news on. This should be a few words long",
+    ),
   country: countryCodeSchema
     .optional()
     .describe(
@@ -187,7 +191,11 @@ export const getWebResultsRequestSchema = z.object({
 export type GetWebResultsRequest = z.infer<typeof getWebResultsRequestSchema>;
 
 export const getNewsResultsRequestSchema = z.object({
-  query: z.string().describe("The search query or topic to search for news on"),
+  query: z
+    .string()
+    .describe(
+      "The search query or topic to search for news on.  This should be a few words long",
+    ),
   country: countryCodeSchema
     .optional()
     .describe(

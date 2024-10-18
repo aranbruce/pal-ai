@@ -1,7 +1,3 @@
-"use client";
-
-import { useState } from "react";
-
 export interface SourceCardProps {
   title: string;
   description: string;
@@ -19,14 +15,8 @@ export default function SourceCard({
   author,
   date,
 }: SourceCardProps) {
-  const [isHovered, setIsHovered] = useState(false);
-
   return (
-    <div
-      className="relative flex"
-      onMouseEnter={() => setIsHovered(true)}
-      onMouseLeave={() => setIsHovered(false)}
-    >
+    <div className="group relative flex">
       <a
         href={url}
         target="_blank"
@@ -49,19 +39,17 @@ export default function SourceCard({
           </h5>
         </div>
       </a>
-      {isHovered && (
-        <div className="absolute left-0 top-full z-10 mt-2 flex w-64 flex-col gap-2 rounded-md bg-white p-4 shadow-lg dark:bg-zinc-700">
-          <h4 className="text-sm font-semibold">{title}</h4>
-          {date && (
-            <p className="text-xs text-zinc-500 dark:text-zinc-400">
-              {new Date(date).toLocaleDateString()}
-            </p>
-          )}
+      <div className="absolute left-0 top-full z-10 mt-2 hidden w-64 flex-col gap-2 rounded-md bg-white p-4 shadow-lg transition group-hover:flex dark:bg-zinc-700">
+        <h4 className="text-sm font-semibold">{title}</h4>
+        {date && (
           <p className="text-xs text-zinc-500 dark:text-zinc-400">
-            {description}
+            {new Date(date).toLocaleDateString()}
           </p>
-        </div>
-      )}
+        )}
+        <p className="text-xs text-zinc-500 dark:text-zinc-400">
+          {description}
+        </p>
+      </div>
     </div>
   );
 }

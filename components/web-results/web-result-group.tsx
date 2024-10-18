@@ -39,7 +39,11 @@ async function WebResultData({
     offset,
   });
 
-  return <WebResultContent results={results} query={query} />;
+  if (Array.isArray(results)) {
+    return <WebResultContent results={results} query={query} />;
+  } else {
+    return null;
+  }
 }
 
 export default function WebResultGroup({

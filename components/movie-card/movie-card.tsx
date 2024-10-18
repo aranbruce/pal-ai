@@ -42,10 +42,10 @@ export default function MovieCard({
             <div className="absolute inset-0 bg-gradient-to-b from-transparent to-black"></div>
             <div className="absolute bottom-1 left-3 right-3 flex flex-col gap-1">
               <div className="flex flex-row items-end gap-2">
-                <h3 className="line-clamp-2- text-md w-full font-semibold">
+                <h3 className="line-clamp-2- text-md w-full font-semibold text-white">
                   {title}
                 </h3>
-                <div className="flex flex-row items-center gap-1 text-xs">
+                <div className="flex flex-row items-center gap-1 text-xs text-white">
                   <h4 className="font-semibold">{voteAverage.toFixed(1)}/10</h4>
                   <p className="">({voteCount.toLocaleString()})</p>
                 </div>
