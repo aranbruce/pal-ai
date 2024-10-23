@@ -13,7 +13,7 @@ interface PromptFormProps {
   isAtBottom: boolean;
   scrollToBottom: () => void;
   handleFileUpload: (event: React.ChangeEvent<HTMLInputElement>) => void;
-  inputFileRef: React.RefObject<HTMLInputElement>;
+  inputFileRef: React.RefObject<HTMLInputElement | null>;
   fileUpload: FileUpload | null;
   setFileUpload: (file: FileUpload | null) => void;
 }

@@ -1,6 +1,6 @@
 type FileUploadButtonProps = {
   handleFileUpload: (event: React.ChangeEvent<HTMLInputElement>) => void;
-  inputFileRef: React.RefObject<HTMLInputElement>;
+  inputFileRef: React.RefObject<HTMLInputElement | null>;
 };
 
 export default function FileUploadButton({
