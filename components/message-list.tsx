@@ -3,7 +3,7 @@ import type { ClientMessage } from "@/app/ai";
 
 interface MessageListProps {
   messages: ClientMessage[];
-  visibilityRef: React.RefObject<HTMLDivElement>;
+  visibilityRef: React.RefObject<HTMLDivElement | null>;
 }
 
 const MessageList: React.FC<MessageListProps> = ({
