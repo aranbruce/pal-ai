@@ -1,3 +1,6 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
+/* eslint-disable @typescript-eslint/no-unused-vars */
+
 import Markdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 

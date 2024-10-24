@@ -1,6 +1,9 @@
+/* eslint-disable @next/next/no-img-element */
+
 "use client";
 
 import { useState } from "react";
+
 import SourceCard from "@/components/source-card/source-card";
 import { WebResult } from "./web-result-group";
 

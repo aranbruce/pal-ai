@@ -1,18 +1,17 @@
 "use client";
 
-import { useState, useEffect } from "react";
-
-import { useUIState, useAIState, useActions } from "ai/rsc";
 import { generateId } from "ai";
-import PromptForm from "@/components/prompt-form";
-import MessageList from "@/components/message-list";
+import { useAIState, useActions, useUIState } from "ai/rsc";
+import { useEffect, useState } from "react";
+
+import type { AIState, ClientMessage } from "@/app/ai";
 import EmptyScreen from "@/components/empty-screen";
-import { useScrollAnchor } from "@/libs/hooks/use-scroll-anchor";
+import MessageList from "@/components/message-list";
+import PromptForm from "@/components/prompt-form";
 
 import useFileUpload from "@/libs/hooks/use-file-upload";
-
-import type { ClientMessage, AIState } from "@/app/ai";
 import useLocation from "@/libs/hooks/use-location";
+import { useScrollAnchor } from "@/libs/hooks/use-scroll-anchor";
 
 export default function Chat() {
   const [inputValue, setInputValue] = useState("");
@@ -20,17 +19,19 @@ export default function Chat() {
   const [aiState, setAIState] = useAIState();
 
   const { continueConversation } = useActions();
-  const { location } = useLocation();
 
-  useEffect(() => {
-    scrollToBottom();
-  }, [messages]);
+  const { messagesRef, scrollRef, visibilityRef, isAtBottom, scrollToBottom } =
+    useScrollAnchor();
+
+  // eslint-disable-next-line
+  const { location } = useLocation();
 
   const { fileUpload, setFileUpload, handleFileUpload, inputFileRef } =
     useFileUpload();
 
-  const { messagesRef, scrollRef, visibilityRef, isAtBottom, scrollToBottom } =
-    useScrollAnchor();
+  useEffect(() => {
+    scrollToBottom();
+  }, [messages, scrollToBottom]);
 
   function resetFileUpload() {
     setFileUpload(null);
