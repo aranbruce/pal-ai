@@ -1,13 +1,13 @@
 "use client";
 
-import { useRef, useEffect, ChangeEvent, FC } from "react";
+import { ChangeEvent, useEffect, useRef } from "react";
 
 interface TextareaProps {
   placeholder: string;
   value: string;
   name?: string;
   onChange: (event: ChangeEvent<HTMLTextAreaElement>) => void;
-  onKeyDown?: (event: any) => void;
+  onKeyDown?: (event: React.KeyboardEvent<HTMLTextAreaElement>) => void;
   tabIndex?: number;
   autoFocus: boolean;
   spellCheck: boolean;

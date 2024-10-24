@@ -1,3 +1,7 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
+/* eslint-disable @typescript-eslint/no-unused-vars */
+/* eslint-disable react/no-children-prop */
+
 import Markdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 

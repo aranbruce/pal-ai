@@ -1,11 +1,11 @@
 "use client";
 
 import { GeistSans } from "geist/font/sans";
-import Header from "@/components/header";
+
 import Button from "@/components/button";
+import Header from "@/components/header";
 
 export default function GlobalError({
-  error,
   reset,
 }: {
   error: Error & { digest?: string };

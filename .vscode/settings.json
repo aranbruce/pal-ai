@@ -1,3 +1,9 @@
 {
-  "cSpell.words": ["AISDK", "Browserbase", "browserbasehq", "TMDB", "tvly"]
+  "cSpell.words": ["AISDK", "Browserbase", "browserbasehq", "TMDB", "tvly"],
+  "eslint.codeActionsOnSave.rules": null,
+  "editor.codeActionsOnSave": {
+    "source.organizeImports": "always",
+    "source.fixAll": "explicit"
+  },
+  "editor.formatOnSave": true
 }

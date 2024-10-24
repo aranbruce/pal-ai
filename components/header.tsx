@@ -1,10 +1,12 @@
 import Image from "next/image";
-import Button from "./button";
+import Link from "next/link";
+
+import Button from "@/components/button";
 
 export default function Header() {
   return (
     <nav className="fixed left-0 right-0 top-0 z-10 flex h-fit w-full shrink-0 items-center justify-between bg-gradient-to-b from-white to-transparent px-3 py-2 backdrop-blur-[1px] dark:from-zinc-950">
-      <a
+      <Link
         href="/"
         className="focus-visible:rounded-sm focus-visible:ring-2 focus-visible:ring-zinc-400 focus-visible:ring-offset-2 dark:ring-offset-zinc-900 dark:focus-visible:ring-zinc-500"
       >
@@ -17,7 +19,7 @@ export default function Header() {
           />
           Pal
         </div>
-      </a>
+      </Link>
       <div className="flex items-center justify-end space-x-2">
         <Button
           openInNewTab

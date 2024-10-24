@@ -1,4 +1,4 @@
-import Image from "next/image";
+/* eslint-disable @next/next/no-img-element */
 
 export type Movie = {
   adult: boolean;
@@ -18,14 +18,10 @@ export type Movie = {
 };
 
 export default function MovieCard({
-  id,
   title,
   backdropPath,
-  genreIds,
   overview,
-  popularity,
-  posterPath,
-  releaseDate,
+
   voteAverage,
   voteCount,
 }: Movie) {

@@ -1,25 +1,30 @@
 "use client";
 
-import { useEffect, useState } from "react";
 import { useAIState, useActions } from "ai/rsc";
+import { useEffect, useState } from "react";
+
 import { AIState } from "@/app/ai";
 
-import Select from "./select";
-import ExampleMessageCardGroup from "./example-message/example-message-group";
 import { modelVariableOptions } from "@/libs/models";
 
+import ExampleMessageCardGroup from "./example-message/example-message-group";
+import Select from "./select";
+
 export default function EmptyScreen() {
+  const [isExamplesLoaded, setIsExamplesLoaded] = useState(false);
   const [examplesUI, setExamplesUI] = useState(null);
   const { createExampleMessages } = useActions();
   const [AIState, setAIState] = useAIState();
 
   useEffect(() => {
     async function fetchExamples() {
+      if (isExamplesLoaded) return;
       const exampleMessagesUI = await createExampleMessages();
       setExamplesUI(exampleMessagesUI);
     }
     fetchExamples();
-  }, []);
+    setIsExamplesLoaded(true);
+  }, [isExamplesLoaded, createExampleMessages]);
 
   function setSelectedValue(value: string) {
     setAIState((AIState: AIState) => {
@@ -43,7 +48,7 @@ export default function EmptyScreen() {
       <div className="flex h-full flex-col content-center items-center justify-center gap-8 text-center">
         <div className="flex w-full flex-col items-center justify-center gap-2 text-center">
           <h1 className="text-2xl font-semibold text-zinc-950 dark:text-zinc-100">
-            Hi I'm Pal
+            Hi I&apos;m Pal
           </h1>
           <p className="text-muted-foreground leading-normal text-zinc-500 dark:text-zinc-400">
             How can I help today?

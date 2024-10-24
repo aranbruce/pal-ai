@@ -1,13 +1,13 @@
 "use client";
 
-import { useState } from "react";
+import React, { useState } from "react";
 import { Prism as SyntaxHighlighter } from "react-syntax-highlighter";
 import { vscDarkPlus } from "react-syntax-highlighter/dist/esm/styles/prism";
 
 type CodeContainerProps = {
   capitalizedLanguage: string;
   language: string;
-  children: any;
+  children: React.ReactNode;
 };
 
 export default function CodeContainer({
@@ -31,15 +31,15 @@ export default function CodeContainer({
       <div className="text-zinc:600 relative flex justify-between bg-zinc-700 px-4 py-2 text-xs">
         <div>{capitalizedLanguage}</div>
         <button onClick={handleCopy}>{isCopied ? "Copied" : "Copy"}</button>
-        {/* <Button onClick={handleCopy} variant={"secondary"}>Copy</Button> */}
       </div>
       <SyntaxHighlighter
         PreTag="div"
         language={language}
         style={vscDarkPlus}
         customStyle={{ margin: "0", background: "none" }}
-        children={String(children).replace(/\n$/, "")}
-      />
+      >
+        {String(children).replace(/\n$/, "")}
+      </SyntaxHighlighter>
     </div>
   );
 }
