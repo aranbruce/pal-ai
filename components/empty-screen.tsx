@@ -11,17 +11,20 @@ import ExampleMessageCardGroup from "./example-message/example-message-group";
 import Select from "./select";
 
 export default function EmptyScreen() {
+  const [isExamplesLoaded, setIsExamplesLoaded] = useState(false);
   const [examplesUI, setExamplesUI] = useState(null);
   const { createExampleMessages } = useActions();
   const [AIState, setAIState] = useAIState();
 
   useEffect(() => {
     async function fetchExamples() {
+      if (isExamplesLoaded) return;
       const exampleMessagesUI = await createExampleMessages();
       setExamplesUI(exampleMessagesUI);
     }
     fetchExamples();
-  });
+    setIsExamplesLoaded(true);
+  }, [isExamplesLoaded, createExampleMessages]);
 
   function setSelectedValue(value: string) {
     setAIState((AIState: AIState) => {
