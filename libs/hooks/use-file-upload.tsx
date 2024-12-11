@@ -1,6 +1,7 @@
-import { useState, useRef } from "react";
+import { useRef, useState } from "react";
 
 interface FileUpload {
+  contentType: string;
   name: string;
   size: number;
   isUploading: boolean;
@@ -35,6 +36,7 @@ export default function useFileUpload() {
         downloadUrl: "",
         pathname: "",
         contentDisposition: "",
+        contentType: ""
       };
       setFileUpload(newFile);
       const response = await fetch(`/api/upload?filename=${file.name}`, {
@@ -48,6 +50,7 @@ export default function useFileUpload() {
         name: file.name,
         size: file.size,
         isUploading: false,
+        contentType: ""
       };
       setFileUpload(uploadedFile);
     }

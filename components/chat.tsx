@@ -56,7 +56,15 @@ export default function Chat() {
       id: generateId(),
       role: "user",
       content: message,
-      file: fileUpload ? fileUpload : undefined,
+      file: fileUpload
+        ? {
+            url: fileUpload.url,
+            downloadUrl: fileUpload.downloadUrl,
+            pathname: fileUpload.pathname,
+            contentType: fileUpload.contentType || "",
+            contentDisposition: fileUpload.contentDisposition || "",
+          }
+        : undefined,
       model: aiState.currentModelVariable,
     });
     const response = await continueConversation(message, fileUpload);
