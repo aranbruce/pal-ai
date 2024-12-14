@@ -8,7 +8,7 @@ import Header from "@/components/header";
 import { AI } from "@/app/ai";
 
 export const metadata: Metadata = {
-  title: "Pal | AI Chatbot",
+  title: "Universe | AI Chatbot",
   description:
     "An AI chatbot that can perform functions like searching the web, getting the weather, and finding the latest news.",
 };
