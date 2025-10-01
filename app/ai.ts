@@ -1,5 +1,5 @@
-import { CoreMessage } from "ai";
-import { createAI } from "ai/rsc";
+import { ModelMessage } from "ai";
+import { createAI } from '@ai-sdk/rsc';
 import {
   continueConversation,
   createExampleMessages,
@@ -21,7 +21,7 @@ export type AIState = {
     } | null;
   };
   isFinished: boolean;
-  messages: CoreMessage[];
+  messages: ModelMessage[];
 };
 
 export type ClientMessage = {

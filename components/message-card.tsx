@@ -1,53 +1,45 @@
-import { useState } from "react";
-import Image from "next/image";
-import { useAIState } from "ai/rsc";
-import { PutBlobResult } from "@vercel/blob";
+import { ToolInvocation } from "ai";
 import { motion } from "framer-motion";
+import { useState } from "react";
 
-import { AIState } from "@/app/ai";
 import { modelVariableOptions } from "@/libs/models";
+import { GifResult } from "@/server/search-for-gifs";
+import { ImageResult } from "@/server/search-for-images";
 
-import Select from "@/components/select";
+import CurrentWeatherCard from "@/components/current-weather/current-weather-card";
+import MarkdownContainer from "@/components/markdown";
+import MovieCardGroup from "@/components/movie-card/movie-card-group";
 import ProviderImage from "@/components/provider-image";
+import Select from "@/components/select";
+import Spinner from "@/components/spinner";
+import WeatherForecastCard from "@/components/weather-forecast/weather-forecast-card";
+import WebResultGroup from "@/components/web-results/web-result-group";
 
 interface MessageProps {
   id: string;
   role: string;
-  content?: React.ReactNode;
-  display?: React.ReactNode;
-  spinner?: React.ReactNode;
-  file?: PutBlobResult;
-  model?: string;
+  content: string;
+  toolInvocations?: ToolInvocation[];
 }
 
 export default function MessageCard({
   id,
   role,
   content,
-  display,
-  spinner,
-  file,
-  model,
+  toolInvocations,
 }: MessageProps) {
-  const [, setAIState] = useAIState();
-  const [selectModel, setSelectModel] = useState<string>(model || "");
+  const [selectModel, setSelectModel] = useState<string>("gpt-4o-mini");
 
   const selectedModel = modelVariableOptions.find(
-    (option) => option.value === model,
+    (option) => option.value === selectModel,
   );
 
   function setSelectedValue(value: string) {
-    setAIState((AIState: AIState) => ({
-      ...AIState,
-      currentModelVariable: value,
-    }));
     setSelectModel(value);
   }
 
   return (
     <motion.div
-      // initial={{ y: 50, opacity: 0 }}
-      // animate={{ y: 0, opacity: 1 }}
       key={id}
       className="flex animate-message_appear flex-row items-start gap-2 whitespace-pre-wrap pb-8"
     >
@@ -68,21 +60,180 @@ export default function MessageCard({
             {selectedModel?.label.toString()}
           </h5>
         )}
-        {file && (
-          <Image
-            src={file.url}
-            alt="file"
-            height={160}
-            width={160}
-            className="w-auto rounded-lg"
-          />
-        )}
         <div
           className={`flex flex-col gap-4 text-zinc-950 dark:text-zinc-300 ${role === "user" && "w-auto rounded-xl bg-zinc-200/60 px-4 py-2 dark:bg-zinc-800"}`}
         >
-          {display && <div>{display}</div>}
-          {content && <div>{content}</div>}
-          {spinner}
+          {content && <MarkdownContainer>{content}</MarkdownContainer>}
+
+          {/* Render tool invocations */}
+          {toolInvocations && toolInvocations.length > 0 && (
+            <div className="flex flex-col gap-8">
+              {toolInvocations.map((toolInvocation) => {
+                const { toolName, toolCallId, state } = toolInvocation;
+
+                if (state === "result") {
+                  const { result } = toolInvocation;
+
+                  switch (toolName) {
+                    case "get_current_weather":
+                      return (
+                        <div key={toolCallId}>
+                          <CurrentWeatherCard
+                            location={result.location}
+                            countryCode={result.countryCode}
+                            units={result.units}
+                          />
+                        </div>
+                      );
+
+                    case "get_weather_forecast":
+                      return (
+                        <div key={toolCallId}>
+                          <WeatherForecastCard
+                            location={result.location}
+                            forecastDays={result.forecastDays}
+                            countryCode={result.countryCode}
+                            units={result.units}
+                          />
+                        </div>
+                      );
+
+                    case "get_web_results":
+                    case "get_news_web_results":
+                      return (
+                        <div key={toolCallId}>
+                          <WebResultGroup
+                            query={result.query}
+                            country={result.country}
+                            freshness={result.freshness}
+                            units={result.units}
+                            count={result.count}
+                            offset={result.offset}
+                          />
+                        </div>
+                      );
+
+                    case "search_for_images":
+                      return (
+                        <div
+                          key={toolCallId}
+                          className="grid grid-cols-2 gap-4 md:grid-cols-4"
+                        >
+                          {Array.isArray(result) ? (
+                            result.map((image: ImageResult) => (
+                              <a
+                                key={image.imageSrc}
+                                href={image.imageSrc}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="flex flex-col gap-2"
+                              >
+                                <img
+                                  className="h-auto max-w-full rounded-lg"
+                                  src={image.imageSrc}
+                                  alt={image.imageTitle}
+                                />
+                                <h5 className="text-sm font-medium text-zinc-500 dark:text-zinc-500">
+                                  {image.imageTitle}
+                                </h5>
+                              </a>
+                            ))
+                          ) : (
+                            <div>{result.error}</div>
+                          )}
+                        </div>
+                      );
+
+                    case "search_for_gifs":
+                      return (
+                        <div
+                          key={toolCallId}
+                          className="grid grid-cols-2 gap-4 md:grid-cols-4"
+                        >
+                          {Array.isArray(result) ? (
+                            result.map((gif: GifResult) => (
+                              <a
+                                key={gif.websiteUrl}
+                                href={gif.websiteUrl}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                              >
+                                <img
+                                  className="h-auto max-w-full rounded-lg"
+                                  src={gif.imageSrc}
+                                  alt={gif.imageTitle}
+                                />
+                              </a>
+                            ))
+                          ) : (
+                            <div>{result.error}</div>
+                          )}
+                        </div>
+                      );
+
+                    case "search_for_movies":
+                    case "search_for_now_playing_movies":
+                      return (
+                        <div key={toolCallId}>
+                          {Array.isArray(result) ? (
+                            <MovieCardGroup movies={result} />
+                          ) : (
+                            <div>{result.error}</div>
+                          )}
+                        </div>
+                      );
+
+                    default:
+                      return null;
+                  }
+                } else {
+                  // Loading state
+                  return (
+                    <div key={toolCallId}>
+                      {toolName === "search_for_images" && (
+                        <div className="animate-text_loading">
+                          Searching for images...
+                        </div>
+                      )}
+                      {toolName === "search_for_gifs" && (
+                        <div className="animate-text_loading">
+                          Searching for gifs...
+                        </div>
+                      )}
+                      {toolName === "search_for_movies" && (
+                        <h4 className="animate-text_loading">
+                          Searching for movies...
+                        </h4>
+                      )}
+                      {toolName === "search_for_now_playing_movies" && (
+                        <h4 className="animate-text_loading">
+                          Searching for movies now playing...
+                        </h4>
+                      )}
+                      {toolName === "get_web_results" && (
+                        <h4 className="animate-text_loading">
+                          Reviewing search results...
+                        </h4>
+                      )}
+                      {toolName === "get_news_web_results" && (
+                        <h4 className="animate-text_loading">
+                          Reviewing news results...
+                        </h4>
+                      )}
+                      {![
+                        "search_for_images",
+                        "search_for_gifs",
+                        "search_for_movies",
+                        "search_for_now_playing_movies",
+                        "get_web_results",
+                        "get_news_web_results",
+                      ].includes(toolName) && <Spinner />}
+                    </div>
+                  );
+                }
+              })}
+            </div>
+          )}
         </div>
         {role === "assistant" && (
           <div className="mt-2 flex flex-row gap-1">

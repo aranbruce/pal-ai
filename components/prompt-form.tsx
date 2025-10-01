@@ -2,7 +2,7 @@ import Textarea from "./textarea";
 import Button from "./button";
 import Spinner from "./spinner";
 
-import { useAIState } from "ai/rsc";
+import { useAIState } from '@ai-sdk/rsc';
 import FileUploadCard, { FileUpload } from "@/components/file-upload-card";
 import FileUploadButton from "@/components/file-upload-button";
 

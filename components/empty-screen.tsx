@@ -1,35 +1,45 @@
 "use client";
 
-import { useAIState, useActions } from "ai/rsc";
-import { useEffect, useState } from "react";
-
-import { AIState } from "@/app/ai";
+import { useState } from "react";
 
 import { modelVariableOptions } from "@/libs/models";
 
 import ExampleMessageCardGroup from "./example-message/example-message-group";
 import Select from "./select";
 
-export default function EmptyScreen() {
-  const [isExamplesLoaded, setIsExamplesLoaded] = useState(false);
-  const [examplesUI, setExamplesUI] = useState(null);
-  const { createExampleMessages } = useActions();
-  const [AIState, setAIState] = useAIState();
+// Static example messages
+const exampleMessages = [
+  {
+    index: 0,
+    heading: "🗞️ Latest News",
+    subheading: "What's happening in the world today?",
+  },
+  {
+    index: 1,
+    heading: "🌤️ Weather",
+    subheading: "What's the weather like in San Francisco?",
+  },
+  {
+    index: 2,
+    heading: "🍿 Movies",
+    subheading: "What are the top rated movies right now?",
+  },
+  {
+    index: 3,
+    heading: "🔎 Search",
+    subheading: "Tell me about the history of artificial intelligence",
+  },
+];
 
-  useEffect(() => {
-    async function fetchExamples() {
-      if (isExamplesLoaded) return;
-      const exampleMessagesUI = await createExampleMessages();
-      setExamplesUI(exampleMessagesUI);
-    }
-    fetchExamples();
-    setIsExamplesLoaded(true);
-  }, [isExamplesLoaded, createExampleMessages]);
+export default function EmptyScreen({
+  onExampleClick,
+}: {
+  onExampleClick?: (message: string) => void;
+}) {
+  const [selectedModel, setSelectedModel] = useState("gpt-4o-mini");
 
   function setSelectedValue(value: string) {
-    setAIState((AIState: AIState) => {
-      return { ...AIState, currentModelVariable: value };
-    });
+    setSelectedModel(value);
   }
 
   return (
@@ -41,7 +51,7 @@ export default function EmptyScreen() {
         <Select
           variant="primary"
           options={modelVariableOptions}
-          selectedValue={AIState.currentModelVariable}
+          selectedValue={selectedModel}
           setSelectedValue={setSelectedValue}
         />
       </div>
@@ -54,11 +64,10 @@ export default function EmptyScreen() {
             How can I help today?
           </p>
         </div>
-        {!examplesUI ? (
-          <ExampleMessageCardGroup exampleMessages={[]} />
-        ) : (
-          examplesUI
-        )}
+        <ExampleMessageCardGroup
+          exampleMessages={exampleMessages}
+          onExampleClick={onExampleClick}
+        />
       </div>
     </div>
   );

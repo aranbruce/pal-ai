@@ -1,11 +1,10 @@
-import "./globals.css";
-import type { Metadata } from "next";
-import { GeistSans } from "geist/font/sans";
 import { Analytics } from "@vercel/analytics/react";
+import { GeistSans } from "geist/font/sans";
+import type { Metadata } from "next";
+import "./globals.css";
 import { CSPostHogProvider } from "./providers";
 
 import Header from "@/components/header";
-import { AI } from "@/app/ai";
 
 export const metadata: Metadata = {
   title: "Pal | AI Chatbot",
@@ -22,11 +21,9 @@ export default function RootLayout({
     <html lang="en" className="bg-white dark:bg-zinc-950">
       <CSPostHogProvider>
         <body className={`${GeistSans.className} h-dvh overflow-hidden`}>
-          <AI>
-            <Header />
-            {children}
-            <Analytics />
-          </AI>
+          <Header />
+          {children}
+          <Analytics />
         </body>
       </CSPostHogProvider>
     </html>

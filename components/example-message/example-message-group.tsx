@@ -6,8 +6,10 @@ import ExampleMessageCard, {
 
 export default function ExampleMessageCardGroup({
   exampleMessages,
+  onExampleClick,
 }: {
   exampleMessages: ExampleMessageCardProps[];
+  onExampleClick?: (message: string) => void;
 }) {
   return (
     <div className="grid w-full grid-cols-2 gap-2 px-4 sm:px-0 md:grid-cols-2">
@@ -20,6 +22,7 @@ export default function ExampleMessageCardGroup({
             heading={example ? example.heading : undefined}
             subheading={example ? example.subheading : undefined}
             modelVariable={example ? example.modelVariable : undefined}
+            onClick={onExampleClick}
           />
         );
       })}

@@ -1,8 +1,8 @@
 import MessageCard from "@/components/message-card";
-import type { ClientMessage } from "@/app/ai";
+import { Message } from "ai";
 
 interface MessageListProps {
-  messages: ClientMessage[];
+  messages: Message[];
   visibilityRef: React.RefObject<HTMLDivElement | null>;
 }
 
@@ -11,16 +11,13 @@ const MessageList: React.FC<MessageListProps> = ({
   visibilityRef,
 }) => (
   <>
-    {messages.map((message: ClientMessage) => (
+    {messages.map((message: Message) => (
       <MessageCard
         key={message.id}
-        id={JSON.stringify(message.id)}
+        id={message.id}
         role={message.role}
         content={message.content}
-        display={message.display}
-        spinner={message.spinner}
-        file={message.file}
-        model={message.model}
+        toolInvocations={message.toolInvocations}
       />
     ))}
     <div className="h-px w-full" ref={visibilityRef} />

@@ -1,6 +1,6 @@
 import { useEffect } from "react";
 
-import { useAIState } from "ai/rsc";
+import { useAIState } from '@ai-sdk/rsc';
 
 import getLocationFromCoordinates from "@/server/get-location-from-coordinates";
 
