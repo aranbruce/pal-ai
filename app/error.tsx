@@ -1,9 +1,10 @@
 "use client";
 
 import { GeistSans } from "geist/font/sans";
+import Link from "next/link";
 
-import Button from "@/components/button";
-import Header from "@/components/header";
+import { Button } from "@/components//ui/button";
+import Header from "@/components/ui/header";
 
 export default function GlobalError({
   reset,
@@ -13,19 +14,17 @@ export default function GlobalError({
 }) {
   return (
     <html>
-      <body
-        className={`${GeistSans.className} bg:white h-screen dark:bg-zinc-950`}
-      >
+      <body className={`${GeistSans.className} bg-background`}>
         <Header />
         <div className="flex h-full flex-col items-center p-4">
           <div className="flex h-full max-w-56 flex-col justify-center gap-4 pb-12 text-center">
-            <h2 className="text-xl font-medium text-zinc-950 dark:text-white">
+            <h2 className="text-primary text-xl font-medium">
               Something went wrong!
             </h2>
             <div className="flex flex-col gap-2">
               <Button onClick={() => reset()}>Try again</Button>
-              <Button variant="secondary" href="/">
-                Go back to home
+              <Button variant="secondary" asChild>
+                <Link href="/">Go back to home</Link>
               </Button>
             </div>
           </div>

@@ -14,22 +14,20 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { Spinner } from "@/components/ui/spinner";
 import { Textarea } from "@/components/ui/textarea";
 import { cn } from "@/lib/utils";
-import type { ChatStatus, FileUIPart } from "ai";
 import {
-  ImageIcon,
-  Loader2Icon,
-  PaperclipIcon,
+  ArrowUpIcon,
+  PhotoIcon,
   PlusIcon,
-  SendIcon,
-  SquareIcon,
-  XIcon,
-} from "lucide-react";
+  StopIcon,
+} from "@heroicons/react/20/solid";
+import { PaperClipIcon, XMarkIcon } from "@heroicons/react/24/outline";
+import type { ChatStatus, FileUIPart } from "ai";
 import { nanoid } from "nanoid";
 import {
   type ChangeEventHandler,
-  Children,
   type ClipboardEventHandler,
   type ComponentProps,
   createContext,
@@ -64,7 +62,7 @@ export const usePromptInputAttachments = () => {
 
   if (!context) {
     throw new Error(
-      "usePromptInputAttachments must be used within a PromptInput"
+      "usePromptInputAttachments must be used within a PromptInput",
     );
   }
 
@@ -98,19 +96,19 @@ export function PromptInputAttachment({
           width={56}
         />
       ) : (
-        <div className="flex size-full items-center justify-center text-muted-foreground">
-          <PaperclipIcon className="size-4" />
+        <div className="text-muted-foreground flex size-full items-center justify-center">
+          <PaperClipIcon className="size-4" />
         </div>
       )}
       <Button
         aria-label="Remove attachment"
-        className="-right-1.5 -top-1.5 absolute h-6 w-6 rounded-full opacity-0 group-hover:opacity-100"
+        className="absolute -top-1.5 -right-1.5 h-6 w-6 rounded-full opacity-0 group-hover:opacity-100"
         onClick={() => attachments.remove(data.id)}
         size="icon"
         type="button"
         variant="outline"
       >
-        <XIcon className="h-3 w-3" />
+        <XMarkIcon className="h-3 w-3" />
       </Button>
     </div>
   );
@@ -150,7 +148,7 @@ export function PromptInputAttachments({
       aria-live="polite"
       className={cn(
         "overflow-hidden transition-[height] duration-200 ease-out",
-        className
+        className,
       )}
       style={{ height: attachments.files.length ? height : 0 }}
       {...props}
@@ -184,7 +182,7 @@ export const PromptInputActionAddAttachments = ({
         attachments.openFileDialog();
       }}
     >
-      <ImageIcon className="mr-2 size-4" /> {label}
+      <PhotoIcon className="mr-2 size-4" /> {label}
     </DropdownMenuItem>
   );
 };
@@ -213,7 +211,7 @@ export type PromptInputProps = Omit<
   }) => void;
   onSubmit: (
     message: PromptInputMessage,
-    event: FormEvent<HTMLFormElement>
+    event: FormEvent<HTMLFormElement>,
   ) => void;
 };
 
@@ -258,7 +256,7 @@ export const PromptInput = ({
       }
       return true;
     },
-    [accept]
+    [accept],
   );
 
   const add = useCallback(
@@ -308,7 +306,7 @@ export const PromptInput = ({
         return prev.concat(next);
       });
     },
-    [matchesAccept, maxFiles, maxFileSize, onError]
+    [matchesAccept, maxFiles, maxFileSize, onError],
   );
 
   const remove = useCallback((id: string) => {
@@ -428,7 +426,7 @@ export const PromptInput = ({
           };
         }
         return item;
-      })
+      }),
     ).then((files: FileUIPart[]) => {
       onSubmit({ text, files }, event);
       clear();
@@ -444,7 +442,7 @@ export const PromptInput = ({
       openFileDialog,
       fileInputRef: inputRef,
     }),
-    [items, add, remove, clear, openFileDialog]
+    [items, add, remove, clear, openFileDialog],
   );
 
   return (
@@ -460,8 +458,8 @@ export const PromptInput = ({
       />
       <form
         className={cn(
-          "w-full divide-y overflow-hidden rounded-xl border bg-background shadow-sm",
-          className
+          "bg-muted w-full overflow-hidden rounded-xl border shadow-xs",
+          className,
         )}
         onSubmit={handleSubmit}
         {...props}
@@ -539,11 +537,11 @@ export const PromptInputTextarea = ({
   return (
     <Textarea
       className={cn(
-        "w-full resize-none rounded-none border-none p-3 shadow-none outline-none ring-0",
-        "field-sizing-content bg-transparent dark:bg-transparent",
+        "w-full resize-none rounded-none border-none p-4 shadow-none ring-0 outline-hidden",
+        "field-sizing-content bg-transparent",
         "max-h-48 min-h-16",
         "focus-visible:ring-0",
-        className
+        className,
       )}
       name="message"
       onChange={(e) => {
@@ -564,7 +562,7 @@ export const PromptInputToolbar = ({
   ...props
 }: PromptInputToolbarProps) => (
   <div
-    className={cn("flex items-center justify-between p-1", className)}
+    className={cn("flex items-center justify-between p-2", className)}
     {...props}
   />
 );
@@ -579,7 +577,7 @@ export const PromptInputTools = ({
     className={cn(
       "flex items-center gap-1",
       "[&_button:first-child]:rounded-bl-xl",
-      className
+      className,
     )}
     {...props}
   />
@@ -593,18 +591,18 @@ export const PromptInputButton = ({
   size,
   ...props
 }: PromptInputButtonProps) => {
-  const newSize =
-    (size ?? Children.count(props.children) > 1) ? "default" : "icon";
+  // const newSize =
+  //   (size ?? Children.count(props.children) > 1) ? "default" : "icon";
 
   return (
     <Button
       className={cn(
         "shrink-0 gap-1.5 rounded-lg",
         variant === "ghost" && "text-muted-foreground",
-        newSize === "default" && "px-3",
-        className
+        // newSize === "icon" && "px-2",
+        className,
       )}
-      size={newSize}
+      size={size}
       type="button"
       variant={variant}
       {...props}
@@ -627,7 +625,7 @@ export const PromptInputActionMenuTrigger = ({
 }: PromptInputActionMenuTriggerProps) => (
   <DropdownMenuTrigger asChild>
     <PromptInputButton className={className} {...props}>
-      {children ?? <PlusIcon className="size-4" />}
+      {children ?? <PlusIcon className="size-5" />}
     </PromptInputButton>
   </DropdownMenuTrigger>
 );
@@ -657,25 +655,33 @@ export const PromptInputActionMenuItem = ({
 
 export type PromptInputSubmitProps = ComponentProps<typeof Button> & {
   status?: ChatStatus;
+  onStop?: () => void;
 };
-
 export const PromptInputSubmit = ({
   className,
   variant = "default",
   size = "icon",
   status,
+  onStop,
   children,
   ...props
 }: PromptInputSubmitProps) => {
-  let Icon = <SendIcon className="size-4" />;
+  let Icon = <ArrowUpIcon className="!size-5" />;
 
   if (status === "submitted") {
-    Icon = <Loader2Icon className="size-4 animate-spin" />;
+    Icon = <Spinner className="size-4" />;
   } else if (status === "streaming") {
-    Icon = <SquareIcon className="size-4" />;
+    Icon = <StopIcon className="size-4" />;
   } else if (status === "error") {
-    Icon = <XIcon className="size-4" />;
+    Icon = <XMarkIcon className="size-4" />;
   }
+
+  const handleClick = (e: React.MouseEvent<HTMLButtonElement>) => {
+    if (status === "streaming" && onStop) {
+      e.preventDefault();
+      onStop();
+    }
+  };
 
   return (
     <Button
@@ -684,6 +690,7 @@ export const PromptInputSubmit = ({
       size={size}
       type="submit"
       variant={variant}
+      onClick={handleClick}
       {...props}
     >
       {children ?? Icon}
@@ -707,9 +714,9 @@ export const PromptInputModelSelectTrigger = ({
 }: PromptInputModelSelectTriggerProps) => (
   <SelectTrigger
     className={cn(
-      "border-none bg-transparent font-medium text-muted-foreground shadow-none transition-colors",
-      'hover:bg-accent hover:text-foreground [&[aria-expanded="true"]]:bg-accent [&[aria-expanded="true"]]:text-foreground',
-      className
+      "text-muted-foreground border-none bg-transparent font-medium shadow-none transition-colors",
+      "hover:bg-accent hover:text-foreground aria-expanded:bg-accent aria-expanded:text-foreground focus-visible:border-ring focus:ring-ring/50 focus-visible:ring-ring/50 outline-none focus:ring-[3px] focus:outline-none focus-visible:ring-[3px]",
+      className,
     )}
     {...props}
   />
