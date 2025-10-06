@@ -11,7 +11,12 @@ interface Model {
 
 async function getModels(): Promise<Model[]> {
   try {
-    const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:3000";
+    const baseUrl =
+      process.env.NEXT_PUBLIC_BASE_URL ||
+      (process.env.VERCEL_URL
+        ? `https://${process.env.VERCEL_URL}`
+        : "http://localhost:3000");
+
     const response = await fetch(`${baseUrl}/api/models`, {
       cache: "no-store",
     });
