@@ -27,33 +27,30 @@ export const ConversationContent = ({
   className,
   ...props
 }: ConversationContentProps) => (
-  <StickToBottom.Content className={cn("p-4", className)} {...props} />
+  <StickToBottom.Content className={cn("p-3", className)} {...props} />
 );
 
 export type ConversationEmptyStateProps = ComponentProps<"div"> & {
   title?: string;
   description?: string;
-  icon?: React.ReactNode;
 };
 
 export const ConversationEmptyState = ({
   className,
   title = "No messages yet",
   description = "Start a conversation to see messages here",
-  icon,
   children,
   ...props
 }: ConversationEmptyStateProps) => (
   <div
     className={cn(
-      "flex size-full flex-col items-center justify-center gap-3 p-24 text-center",
+      "flex size-full flex-col items-center justify-center gap-3 pt-24 text-center",
       className,
     )}
     {...props}
   >
     {children ?? (
       <>
-        {/* {icon && <div className="text-muted-foreground">{icon}</div>} */}
         <div className="space-y-2">
           <h2 className="text-3xl font-semibold">{title}</h2>
           {description && (

@@ -4,6 +4,8 @@
 
 @custom-variant dark (&:is(.dark *));
 
+@source "../node_modules/streamdown/dist/index.js";
+
 :root {
   --background: oklch(1 0 0);
   --foreground: oklch(0.145 0 0);
@@ -38,6 +40,10 @@
   --sidebar-accent-foreground: oklch(0.205 0 0);
   --sidebar-border: oklch(0.922 0 0);
   --sidebar-ring: oklch(0.708 0 0);
+  --weather: oklch(0.7 0.15 230);
+  --weather-foreground: oklch(1 0 0);
+  --weather-muted: oklch(0.85 0.08 230);
+  --weather-gradient: linear-gradient(to bottom, #569ce5, #224da4);
 }
 
 .dark {
@@ -73,6 +79,10 @@
   --sidebar-accent-foreground: oklch(0.985 0 0);
   --sidebar-border: oklch(1 0 0 / 10%);
   --sidebar-ring: oklch(0.556 0 0);
+  --weather: oklch(0.45 0.15 230);
+  --weather-foreground: oklch(0.985 0 0);
+  --weather-muted: oklch(0.65 0.1 230);
+  --weather-gradient: linear-gradient(to bottom, #224da4, #111d37);
 }
 
 @theme {
@@ -116,6 +126,10 @@
   --color-chart-3: var(--chart-3);
   --color-chart-4: var(--chart-4);
   --color-chart-5: var(--chart-5);
+
+  --color-weather: var(--weather);
+  --color-weather-foreground: var(--weather-foreground);
+  --color-weather-muted: var(--weather-muted);
 
   @keyframes message_appear {
     0% {

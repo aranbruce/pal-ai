@@ -16,6 +16,7 @@ import {
 } from "@/components/ui/select";
 import { Spinner } from "@/components/ui/spinner";
 import { Textarea } from "@/components/ui/textarea";
+import { Toggle } from "@/components/ui/toggle";
 import { cn } from "@/lib/utils";
 import {
   ArrowUpIcon,
@@ -610,6 +611,43 @@ export const PromptInputButton = ({
   );
 };
 
+export type PromptInputToggleButtonProps = ComponentProps<typeof Toggle> & {
+  active?: boolean;
+  activeIcon?: React.ReactNode;
+  inactiveIcon?: React.ReactNode;
+};
+
+export const PromptInputToggleButton = ({
+  active = false,
+  activeIcon,
+  inactiveIcon,
+  className,
+  children,
+  size = "sm",
+  ...props
+}: PromptInputToggleButtonProps) => {
+  return (
+    <Toggle
+      pressed={active}
+      className={cn(
+        "group gap-1.5 rounded-lg border transition-colors",
+        "focus-visible:border-ring focus-visible:ring-ring/50 outline-none focus-visible:ring-[3px]",
+        "data-[state=on]:bg-background/60 data-[state=on]:hover:bg-background/80",
+        "data-[state=off]:hover:bg-background/60 data-[state=off]:hover:border-border data-[state=off]:border-transparent data-[state=off]:hover:border",
+        className,
+      )}
+      size={size}
+      {...props}
+    >
+      {activeIcon && inactiveIcon
+        ? active
+          ? activeIcon
+          : inactiveIcon
+        : children}
+    </Toggle>
+  );
+};
+
 export type PromptInputActionMenuProps = ComponentProps<typeof DropdownMenu>;
 export const PromptInputActionMenu = (props: PromptInputActionMenuProps) => (
   <DropdownMenu {...props} />
@@ -624,7 +662,15 @@ export const PromptInputActionMenuTrigger = ({
   ...props
 }: PromptInputActionMenuTriggerProps) => (
   <DropdownMenuTrigger asChild>
-    <PromptInputButton className={className} {...props}>
+    <PromptInputButton
+      className={cn(
+        "size-8 border border-transparent",
+        "hover:border-border hover:bg-background/60",
+        "data-[state=open]:border-border data-[state=open]:bg-background/60",
+        className,
+      )}
+      {...props}
+    >
       {children ?? <PlusIcon className="size-5" />}
     </PromptInputButton>
   </DropdownMenuTrigger>
@@ -714,8 +760,10 @@ export const PromptInputModelSelectTrigger = ({
 }: PromptInputModelSelectTriggerProps) => (
   <SelectTrigger
     className={cn(
-      "text-muted-foreground border-none bg-transparent font-medium shadow-none transition-colors",
-      "hover:bg-accent hover:text-foreground aria-expanded:bg-accent aria-expanded:text-foreground focus-visible:border-ring focus:ring-ring/50 focus-visible:ring-ring/50 outline-none focus:ring-[3px] focus:outline-none focus-visible:ring-[3px]",
+      "text-muted-foreground h-8 cursor-pointer border border-transparent bg-transparent font-medium shadow-none transition-colors",
+      "hover:border-border hover:bg-background/60 hover:text-foreground",
+      "data-[state=open]:border-border data-[state=open]:bg-background/60",
+      "focus-visible:border-ring focus:ring-ring/50 focus-visible:ring-ring/50 outline-none focus:ring-[3px] focus:outline-none focus-visible:ring-[3px]",
       className,
     )}
     {...props}

@@ -5,8 +5,8 @@ import { Button } from "@/components/ui/button";
 
 export default function Header() {
   return (
-    <nav className="from-background via-background/90 fixed top-0 right-0 left-0 z-10 flex h-fit w-full shrink-0 items-center justify-between bg-gradient-to-b to-transparent px-3 py-2 backdrop-blur-[1px]">
-      <div className="mx-auto flex w-full max-w-3xl items-center justify-between">
+    <nav className="from-background via-background/90 fixed top-0 right-0 left-0 z-10 flex h-fit w-full shrink-0 items-center justify-between bg-gradient-to-b to-transparent py-2 backdrop-blur-[1px]">
+      <div className="mx-auto flex w-full max-w-3xl items-center justify-between px-3">
         <Link
           href="/"
           className="focus-visible:rounded-sm focus-visible:ring-2 focus-visible:ring-offset-2"

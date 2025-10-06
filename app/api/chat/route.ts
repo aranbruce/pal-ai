@@ -1,10 +1,17 @@
+import { getCurrentWeather } from "@/app/actions/get-current-weather";
+import { getWeatherForecast } from "@/app/actions/get-weather-forecast";
+import { getWebResults } from "@/app/actions/get-web-results";
+import { getWebpageContents } from "@/app/actions/get-webpage-contents";
 import {
   consumeStream,
   convertToModelMessages,
+  smoothStream,
   stepCountIs,
   streamText,
+  tool,
   type UIMessage,
 } from "ai";
+import { z } from "zod";
 
 function getTodaysDate() {
   const today = new Date();
@@ -12,25 +19,173 @@ function getTodaysDate() {
 }
 
 export async function POST(request: Request) {
-  const { messages, data }: { messages: UIMessage[]; data?: any } =
-    await request.json();
+  const {
+    messages,
+    model,
+    webSearch,
+    data,
+  }: {
+    messages: UIMessage[];
+    model?: string;
+    webSearch?: boolean;
+    data?: any;
+  } = await request.json();
+
+  console.log("Received request body:", {
+    messages: messages.length,
+    model,
+    webSearch,
+    data,
+  });
 
   const location = data?.location?.coordinates;
   const todaysDate = getTodaysDate();
+  const selectedModel = model || "openai/gpt-5"; // Use the model from request or default to gpt-5
+  console.log("Web search enabled:", webSearch);
+
+  console.log("Selected model:", selectedModel);
 
   const result = streamText({
-    model: "openai/gpt-5",
+    model: selectedModel,
+    // model: "deepseek/deepseek-r1", // <-- Ensure correct model string
     messages: convertToModelMessages(messages),
     temperature: 0.2,
     maxRetries: 4,
-    stopWhen: stepCountIs(5), // Stop at step 5 if tools were called
+    stopWhen: stepCountIs(20), // Stop after 20 steps
     abortSignal: request.signal, // Forward the abort signal
+    experimental_transform: smoothStream({
+      delayInMs: 20, // optional: defaults to 10ms
+      chunking: "word", // optional: defaults to 'word'
+    }),
+    prepareStep: async ({ stepNumber }) => {
+      // Force web search tool on the first step if webSearch is enabled
+      if (stepNumber === 0 && webSearch) {
+        return {
+          toolChoice: { type: "tool", toolName: "search_web" },
+        };
+      }
+      // Use default settings for other steps
+    },
+    tools: {
+      search_web: tool({
+        description:
+          "Search the web for current information, news, articles, and other online content. Use this when you need up-to-date information or to find relevant web pages.",
+        inputSchema: z.object({
+          query: z.string().describe("The search query string"),
+          country: z
+            .string()
+            .optional()
+            .describe("Country code for localized results (e.g., 'us', 'gb')"),
+          freshness: z
+            .enum(["past-day", "past-week", "past-month", "past-year"])
+            .optional()
+            .describe("Filter results by how recent they are"),
+          count: z
+            .number()
+            .min(1)
+            .max(20)
+            .optional()
+            .default(8)
+            .describe("Number of results to return (1-20)"),
+        }),
+        execute: async ({ query, country, freshness, count }) => {
+          return await getWebResults({ query, country, freshness, count });
+        },
+      }),
+      get_webpage_contents: tool({
+        description:
+          "Extract and return the contents of one or more web pages. Useful for reading articles, documentation, or any web content.",
+        inputSchema: z.object({
+          urls: z
+            .array(z.url())
+            .min(1)
+            .describe("Array of URLs to extract content from"),
+        }),
+        execute: async ({ urls }) => {
+          return await getWebpageContents(urls);
+        },
+      }),
+      get_current_weather: tool({
+        description:
+          "Get the current weather and hourly forecast for a specific location using latitude and longitude coordinates. Returns temperature, weather conditions, and hourly forecast.",
+        inputSchema: z.object({
+          latitude: z
+            .number()
+            .min(-90)
+            .max(90)
+            .describe("Latitude of the location (-90 to 90)"),
+          longitude: z
+            .number()
+            .min(-180)
+            .max(180)
+            .describe("Longitude of the location (-180 to 180)"),
+          units: z
+            .enum(["metric", "imperial"])
+            .optional()
+            .default("metric")
+            .describe(
+              "Temperature units: 'metric' for Celsius, 'imperial' for Fahrenheit",
+            ),
+        }),
+        execute: async ({ latitude, longitude, units }) => {
+          return await getCurrentWeather({ latitude, longitude, units });
+        },
+      }),
+      get_weather_forecast: tool({
+        description:
+          "Get the weather forecast for a specific location for the next 1-7 days. Provide location name and optionally country code for accurate results.",
+        inputSchema: z.object({
+          location: z
+            .string()
+            .describe("The name of the location (city, town, etc.)"),
+          forecastDays: z
+            .number()
+            .min(1)
+            .max(7)
+            .describe("Number of days to forecast (1-7)"),
+          countryCode: z
+            .string()
+            .optional()
+            .describe(
+              "Optional ISO 3166 country code (e.g., 'US', 'GB', 'CA')",
+            ),
+          units: z
+            .enum(["metric", "imperial"])
+            .optional()
+            .default("metric")
+            .describe(
+              "Temperature units: 'metric' for Celsius, 'imperial' for Fahrenheit",
+            ),
+        }),
+        execute: async ({ location, forecastDays, countryCode, units }) => {
+          return await getWeatherForecast({
+            location,
+            forecastDays,
+            countryCode,
+            units,
+          });
+        },
+      }),
+    },
 
     system: `
       You are an AI designed to help users with their queries. You can perform tools like searching the web,
       help users find information from the web, get the weather or find out the latest news.
+      IMPORTANT: Respond in markdown format
       Today's date is ${todaysDate}.
+      The model you are using is ${selectedModel}.
       If asked to describe an image or asked about an image that the user has been provided, assume the user is visually impaired and provide a description of the image.
+      
+      IMPORTANT TOOL USAGE GUIDELINES:
+      - When calling any tool, call the tool before providing your final answer.
+      - You have access to a "search_web" tool that can find current information from the internet. Use it when users ask about recent events, current information, or need to find online resources.
+      - You have access to a "get_webpage_contents" tool that can extract and return the contents of web pages. Use it to read articles, documentation, or any web content the user is interested in.
+      - You have access to a "get_current_weather" tool that gets current weather using latitude/longitude coordinates.
+      - You have access to a "get_weather_forecast" tool that gets weather forecasts for 1-7 days using location name and optional country code.
+      - You have access to a "get_current_weather" tool that can provide the current weather and hourly forecast for a specific location. Use it when users ask about the weather.
+      - When you use the "search_web" tool, always provide a concise summary of the results you found, including titles, URLs, and brief descriptions.
+      - When you use the "get_webpage_contents" tool, summarize the key points from the extracted content to answer the user's query effectively.
+      - When you use the "get_current_weather" tool, a beautiful interactive weather card is automatically displayed to the user showing the temperature, conditions, and hourly forecast.      
       `,
 
     onFinish: async ({ response }) => {
@@ -48,6 +203,7 @@ export async function POST(request: Request) {
   });
 
   return result.toUIMessageStreamResponse({
+    sendReasoning: true, // Enable reasoning in UI messages
     onFinish: async ({ isAborted }) => {
       if (isAborted) {
         console.log("Stream was aborted");

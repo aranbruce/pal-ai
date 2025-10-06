@@ -32,5 +32,5 @@ async function getModels(): Promise<Model[]> {
 export default async function Page() {
   const models = await getModels();
 
-  return <Chat models={models} defaultModel="xai/grok-3-fast" />;
+  return <Chat models={models} defaultModel="alibaba/qwen3-vl-thinking" />;
 }
