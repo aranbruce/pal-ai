@@ -1,0 +1,803 @@
+"use client";
+
+import { Button } from "@/components/ui/button";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Spinner } from "@/components/ui/spinner";
+import { Textarea } from "@/components/ui/textarea";
+import { Toggle } from "@/components/ui/toggle";
+import { cn } from "@/lib/utils";
+import {
+  ArrowUpIcon,
+  PhotoIcon,
+  PlusIcon,
+  StopIcon,
+} from "@heroicons/react/20/solid";
+import { PaperClipIcon, XMarkIcon } from "@heroicons/react/24/outline";
+import type { ChatStatus, FileUIPart } from "ai";
+import { nanoid } from "nanoid";
+import NextImage from "next/image";
+import {
+  type ChangeEventHandler,
+  type ClipboardEventHandler,
+  type ComponentProps,
+  createContext,
+  type FormEvent,
+  type FormEventHandler,
+  Fragment,
+  type HTMLAttributes,
+  type KeyboardEventHandler,
+  type RefObject,
+  useCallback,
+  useContext,
+  useEffect,
+  useLayoutEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
+
+type AttachmentsContext = {
+  files: (FileUIPart & { id: string })[];
+  add: (files: File[] | FileList) => void;
+  remove: (id: string) => void;
+  clear: () => void;
+  openFileDialog: () => void;
+  fileInputRef: RefObject<HTMLInputElement | null>;
+};
+
+const AttachmentsContext = createContext<AttachmentsContext | null>(null);
+
+export const usePromptInputAttachments = () => {
+  const context = useContext(AttachmentsContext);
+
+  if (!context) {
+    throw new Error(
+      "usePromptInputAttachments must be used within a PromptInput",
+    );
+  }
+
+  return context;
+};
+
+export type PromptInputAttachmentProps = HTMLAttributes<HTMLDivElement> & {
+  data: FileUIPart & { id: string };
+  className?: string;
+};
+
+export function PromptInputAttachment({
+  data,
+  className,
+  ...props
+}: PromptInputAttachmentProps) {
+  const attachments = usePromptInputAttachments();
+
+  return (
+    <div
+      className={cn("group relative h-14 w-14 rounded-md border", className)}
+      key={data.id}
+      {...props}
+    >
+      {data.mediaType?.startsWith("image/") && data.url ? (
+        <NextImage
+          alt={data.filename || ""}
+          className="size-full rounded-md object-cover"
+          height={56}
+          src={data.url}
+          width={56}
+        />
+      ) : (
+        <div className="text-muted-foreground flex size-full items-center justify-center">
+          <PaperClipIcon className="size-4" />
+        </div>
+      )}
+      <Button
+        aria-label="Remove attachment"
+        className="absolute -top-1.5 -right-1.5 h-6 w-6 rounded-full opacity-0 group-hover:opacity-100"
+        onClick={() => attachments.remove(data.id)}
+        size="icon"
+        type="button"
+        variant="outline"
+      >
+        <XMarkIcon className="h-3 w-3" />
+      </Button>
+    </div>
+  );
+}
+
+export type PromptInputAttachmentsProps = Omit<
+  HTMLAttributes<HTMLDivElement>,
+  "children"
+> & {
+  children: (attachment: FileUIPart & { id: string }) => React.ReactNode;
+};
+
+export function PromptInputAttachments({
+  className,
+  children,
+  ...props
+}: PromptInputAttachmentsProps) {
+  const attachments = usePromptInputAttachments();
+  const [height, setHeight] = useState(0);
+  const contentRef = useRef<HTMLDivElement>(null);
+
+  useLayoutEffect(() => {
+    const el = contentRef.current;
+    if (!el) {
+      return;
+    }
+    const ro = new ResizeObserver(() => {
+      setHeight(el.getBoundingClientRect().height);
+    });
+    ro.observe(el);
+    setHeight(el.getBoundingClientRect().height);
+    return () => ro.disconnect();
+  }, []);
+
+  return (
+    <div
+      aria-live="polite"
+      className={cn(
+        "overflow-hidden transition-[height] duration-200 ease-out",
+        className,
+      )}
+      style={{ height: attachments.files.length ? height : 0 }}
+      {...props}
+    >
+      <div className="flex flex-wrap gap-2 p-3 pt-3" ref={contentRef}>
+        {attachments.files.map((file) => (
+          <Fragment key={file.id}>{children(file)}</Fragment>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+export type PromptInputActionAddAttachmentsProps = ComponentProps<
+  typeof DropdownMenuItem
+> & {
+  label?: string;
+};
+
+export const PromptInputActionAddAttachments = ({
+  label = "Add photos or files",
+  ...props
+}: PromptInputActionAddAttachmentsProps) => {
+  const attachments = usePromptInputAttachments();
+
+  return (
+    <DropdownMenuItem
+      {...props}
+      onSelect={(e) => {
+        e.preventDefault();
+        attachments.openFileDialog();
+      }}
+    >
+      <PhotoIcon className="mr-2 size-4" /> {label}
+    </DropdownMenuItem>
+  );
+};
+
+export type PromptInputMessage = {
+  text?: string;
+  files?: FileUIPart[];
+};
+
+export type PromptInputProps = Omit<
+  HTMLAttributes<HTMLFormElement>,
+  "onSubmit"
+> & {
+  accept?: string; // e.g., "image/*" or leave undefined for any
+  multiple?: boolean;
+  // When true, accepts drops anywhere on document. Default false (opt-in).
+  globalDrop?: boolean;
+  // Render a hidden input with given name and keep it in sync for native form posts. Default false.
+  syncHiddenInput?: boolean;
+  // Minimal constraints
+  maxFiles?: number;
+  maxFileSize?: number; // bytes
+  onError?: (err: {
+    code: "max_files" | "max_file_size" | "accept";
+    message: string;
+  }) => void;
+  onSubmit: (
+    message: PromptInputMessage,
+    event: FormEvent<HTMLFormElement>,
+  ) => void;
+};
+
+export const PromptInput = ({
+  className,
+  accept,
+  multiple,
+  globalDrop,
+  syncHiddenInput,
+  maxFiles,
+  maxFileSize,
+  onError,
+  onSubmit,
+  children,
+  ...props
+}: PromptInputProps) => {
+  const [items, setItems] = useState<(FileUIPart & { id: string })[]>([]);
+  const inputRef = useRef<HTMLInputElement | null>(null);
+  const anchorRef = useRef<HTMLSpanElement>(null);
+  const formRef = useRef<HTMLFormElement | null>(null);
+
+  // Find nearest form to scope drag & drop
+  useEffect(() => {
+    const root = anchorRef.current?.closest("form");
+    if (root instanceof HTMLFormElement) {
+      formRef.current = root;
+    }
+  }, []);
+
+  const openFileDialog = useCallback(() => {
+    inputRef.current?.click();
+  }, []);
+
+  const matchesAccept = useCallback(
+    (f: File) => {
+      if (!accept || accept.trim() === "") {
+        return true;
+      }
+      // Simple check: if accept includes "image/*", filter to images; otherwise allow.
+      if (accept.includes("image/*")) {
+        return f.type.startsWith("image/");
+      }
+      return true;
+    },
+    [accept],
+  );
+
+  const add = useCallback(
+    (files: File[] | FileList) => {
+      const incoming = Array.from(files);
+      const accepted = incoming.filter((f) => matchesAccept(f));
+      if (accepted.length === 0) {
+        onError?.({
+          code: "accept",
+          message: "No files match the accepted types.",
+        });
+        return;
+      }
+      const withinSize = (f: File) =>
+        maxFileSize ? f.size <= maxFileSize : true;
+      const sized = accepted.filter(withinSize);
+      if (sized.length === 0 && accepted.length > 0) {
+        onError?.({
+          code: "max_file_size",
+          message: "All files exceed the maximum size.",
+        });
+        return;
+      }
+      setItems((prev) => {
+        const capacity =
+          typeof maxFiles === "number"
+            ? Math.max(0, maxFiles - prev.length)
+            : undefined;
+        const capped =
+          typeof capacity === "number" ? sized.slice(0, capacity) : sized;
+        if (typeof capacity === "number" && sized.length > capacity) {
+          onError?.({
+            code: "max_files",
+            message: "Too many files. Some were not added.",
+          });
+        }
+        const next: (FileUIPart & { id: string })[] = [];
+        for (const file of capped) {
+          next.push({
+            id: nanoid(),
+            type: "file",
+            url: URL.createObjectURL(file),
+            mediaType: file.type,
+            filename: file.name,
+          });
+        }
+        return prev.concat(next);
+      });
+    },
+    [matchesAccept, maxFiles, maxFileSize, onError],
+  );
+
+  const remove = useCallback((id: string) => {
+    setItems((prev) => {
+      const found = prev.find((file) => file.id === id);
+      if (found?.url) {
+        URL.revokeObjectURL(found.url);
+      }
+      return prev.filter((file) => file.id !== id);
+    });
+  }, []);
+
+  const clear = useCallback(() => {
+    setItems((prev) => {
+      for (const file of prev) {
+        if (file.url) {
+          URL.revokeObjectURL(file.url);
+        }
+      }
+      return [];
+    });
+  }, []);
+
+  // Note: File input cannot be programmatically set for security reasons
+  // The syncHiddenInput prop is no longer functional
+  useEffect(() => {
+    if (syncHiddenInput && inputRef.current) {
+      // Clear the input when items are cleared
+      if (items.length === 0) {
+        inputRef.current.value = "";
+      }
+    }
+  }, [items, syncHiddenInput]);
+
+  // Attach drop handlers on nearest form and document (opt-in)
+  useEffect(() => {
+    const form = formRef.current;
+    if (!form) {
+      return;
+    }
+    const onDragOver = (e: DragEvent) => {
+      if (e.dataTransfer?.types?.includes("Files")) {
+        e.preventDefault();
+      }
+    };
+    const onDrop = (e: DragEvent) => {
+      if (e.dataTransfer?.types?.includes("Files")) {
+        e.preventDefault();
+      }
+      if (e.dataTransfer?.files && e.dataTransfer.files.length > 0) {
+        add(e.dataTransfer.files);
+      }
+    };
+    form.addEventListener("dragover", onDragOver);
+    form.addEventListener("drop", onDrop);
+    return () => {
+      form.removeEventListener("dragover", onDragOver);
+      form.removeEventListener("drop", onDrop);
+    };
+  }, [add]);
+
+  useEffect(() => {
+    if (!globalDrop) {
+      return;
+    }
+    const onDragOver = (e: DragEvent) => {
+      if (e.dataTransfer?.types?.includes("Files")) {
+        e.preventDefault();
+      }
+    };
+    const onDrop = (e: DragEvent) => {
+      if (e.dataTransfer?.types?.includes("Files")) {
+        e.preventDefault();
+      }
+      if (e.dataTransfer?.files && e.dataTransfer.files.length > 0) {
+        add(e.dataTransfer.files);
+      }
+    };
+    document.addEventListener("dragover", onDragOver);
+    document.addEventListener("drop", onDrop);
+    return () => {
+      document.removeEventListener("dragover", onDragOver);
+      document.removeEventListener("drop", onDrop);
+    };
+  }, [add, globalDrop]);
+
+  const handleChange: ChangeEventHandler<HTMLInputElement> = (event) => {
+    if (event.currentTarget.files) {
+      add(event.currentTarget.files);
+    }
+  };
+
+  const convertBlobUrlToDataUrl = async (url: string): Promise<string> => {
+    const response = await fetch(url);
+    const blob = await response.blob();
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onloadend = () => resolve(reader.result as string);
+      reader.onerror = reject;
+      reader.readAsDataURL(blob);
+    });
+  };
+
+  const handleSubmit: FormEventHandler<HTMLFormElement> = (event) => {
+    event.preventDefault();
+
+    const formData = new FormData(event.currentTarget);
+    const text = (formData.get("message") as string) || "";
+
+    // Convert blob URLs to data URLs asynchronously
+    Promise.all(
+      items.map(async (item) => {
+        if (item.url && item.url.startsWith("blob:")) {
+          return {
+            ...item,
+            url: await convertBlobUrlToDataUrl(item.url),
+          };
+        }
+        return item;
+      }),
+    ).then((files: FileUIPart[]) => {
+      onSubmit({ text, files }, event);
+      clear();
+    });
+  };
+
+  const ctx = useMemo<AttachmentsContext>(
+    () => ({
+      files: items.map((item) => ({ ...item, id: item.id })),
+      add,
+      remove,
+      clear,
+      openFileDialog,
+      fileInputRef: inputRef,
+    }),
+    [items, add, remove, clear, openFileDialog],
+  );
+
+  return (
+    <AttachmentsContext.Provider value={ctx}>
+      <span aria-hidden="true" className="hidden" ref={anchorRef} />
+      <input
+        accept={accept}
+        className="hidden"
+        multiple={multiple}
+        onChange={handleChange}
+        ref={inputRef}
+        type="file"
+      />
+      <form
+        className={cn(
+          "bg-muted w-full overflow-hidden rounded-xl border shadow-xs",
+          className,
+        )}
+        onSubmit={handleSubmit}
+        {...props}
+      >
+        {children}
+      </form>
+    </AttachmentsContext.Provider>
+  );
+};
+
+export type PromptInputBodyProps = HTMLAttributes<HTMLDivElement>;
+
+export const PromptInputBody = ({
+  className,
+  ...props
+}: PromptInputBodyProps) => (
+  <div className={cn(className, "flex flex-col")} {...props} />
+);
+
+export type PromptInputTextareaProps = ComponentProps<typeof Textarea>;
+
+export const PromptInputTextarea = ({
+  onChange,
+  className,
+  placeholder = "What would you like to know?",
+  ...props
+}: PromptInputTextareaProps) => {
+  const attachments = usePromptInputAttachments();
+
+  const handleKeyDown: KeyboardEventHandler<HTMLTextAreaElement> = (e) => {
+    if (e.key === "Enter") {
+      // Don't submit if IME composition is in progress
+      if (e.nativeEvent.isComposing) {
+        return;
+      }
+
+      if (e.shiftKey) {
+        // Allow newline
+        return;
+      }
+
+      // Submit on Enter (without Shift)
+      e.preventDefault();
+      const form = e.currentTarget.form;
+      if (form) {
+        form.requestSubmit();
+      }
+    }
+  };
+
+  const handlePaste: ClipboardEventHandler<HTMLTextAreaElement> = (event) => {
+    const items = event.clipboardData?.items;
+
+    if (!items) {
+      return;
+    }
+
+    const files: File[] = [];
+
+    for (const item of items) {
+      if (item.kind === "file") {
+        const file = item.getAsFile();
+        if (file) {
+          files.push(file);
+        }
+      }
+    }
+
+    if (files.length > 0) {
+      event.preventDefault();
+      attachments.add(files);
+    }
+  };
+
+  return (
+    <Textarea
+      className={cn(
+        "w-full resize-none rounded-none border-none p-4 shadow-none ring-0 outline-hidden",
+        "field-sizing-content bg-transparent",
+        "max-h-48 min-h-16",
+        "focus-visible:ring-0",
+        className,
+      )}
+      name="message"
+      onChange={(e) => {
+        onChange?.(e);
+      }}
+      onKeyDown={handleKeyDown}
+      onPaste={handlePaste}
+      placeholder={placeholder}
+      {...props}
+    />
+  );
+};
+
+export type PromptInputToolbarProps = HTMLAttributes<HTMLDivElement>;
+
+export const PromptInputToolbar = ({
+  className,
+  ...props
+}: PromptInputToolbarProps) => (
+  <div
+    className={cn("flex items-center justify-between p-2", className)}
+    {...props}
+  />
+);
+
+export type PromptInputToolsProps = HTMLAttributes<HTMLDivElement>;
+
+export const PromptInputTools = ({
+  className,
+  ...props
+}: PromptInputToolsProps) => (
+  <div
+    className={cn(
+      "flex items-center gap-1",
+      "[&_button:first-child]:rounded-bl-xl",
+      className,
+    )}
+    {...props}
+  />
+);
+
+export type PromptInputButtonProps = ComponentProps<typeof Button>;
+
+export const PromptInputButton = ({
+  variant = "ghost",
+  className,
+  size,
+  ...props
+}: PromptInputButtonProps) => {
+  // const newSize =
+  //   (size ?? Children.count(props.children) > 1) ? "default" : "icon";
+
+  return (
+    <Button
+      className={cn(
+        "shrink-0 gap-1.5 rounded-lg",
+        variant === "ghost" && "text-muted-foreground",
+        // newSize === "icon" && "px-2",
+        className,
+      )}
+      size={size}
+      type="button"
+      variant={variant}
+      {...props}
+    />
+  );
+};
+
+export type PromptInputToggleButtonProps = ComponentProps<typeof Toggle> & {
+  active?: boolean;
+  activeIcon?: React.ReactNode;
+  inactiveIcon?: React.ReactNode;
+};
+
+export const PromptInputToggleButton = ({
+  active = false,
+  activeIcon,
+  inactiveIcon,
+  className,
+  children,
+  size = "sm",
+  ...props
+}: PromptInputToggleButtonProps) => {
+  return (
+    <Toggle
+      pressed={active}
+      className={cn(
+        "group gap-1.5 rounded-lg border transition-colors",
+        "focus-visible:border-ring focus-visible:ring-ring/50 outline-none focus-visible:ring-[3px]",
+        "data-[state=on]:bg-background/60 data-[state=on]:hover:bg-background/80",
+        "data-[state=off]:hover:bg-background/60 data-[state=off]:hover:border-border data-[state=off]:border-transparent data-[state=off]:hover:border",
+        className,
+      )}
+      size={size}
+      {...props}
+    >
+      {activeIcon && inactiveIcon
+        ? active
+          ? activeIcon
+          : inactiveIcon
+        : children}
+    </Toggle>
+  );
+};
+
+export type PromptInputActionMenuProps = ComponentProps<typeof DropdownMenu>;
+export const PromptInputActionMenu = (props: PromptInputActionMenuProps) => (
+  <DropdownMenu {...props} />
+);
+
+export type PromptInputActionMenuTriggerProps = ComponentProps<
+  typeof Button
+> & {};
+export const PromptInputActionMenuTrigger = ({
+  className,
+  children,
+  ...props
+}: PromptInputActionMenuTriggerProps) => (
+  <DropdownMenuTrigger asChild>
+    <PromptInputButton
+      className={cn(
+        "size-8 border border-transparent",
+        "hover:border-border hover:bg-background/60",
+        "data-[state=open]:border-border data-[state=open]:bg-background/60",
+        className,
+      )}
+      {...props}
+    >
+      {children ?? <PlusIcon className="size-5" />}
+    </PromptInputButton>
+  </DropdownMenuTrigger>
+);
+
+export type PromptInputActionMenuContentProps = ComponentProps<
+  typeof DropdownMenuContent
+>;
+export const PromptInputActionMenuContent = ({
+  className,
+  ...props
+}: PromptInputActionMenuContentProps) => (
+  <DropdownMenuContent align="start" className={cn(className)} {...props} />
+);
+
+export type PromptInputActionMenuItemProps = ComponentProps<
+  typeof DropdownMenuItem
+>;
+export const PromptInputActionMenuItem = ({
+  className,
+  ...props
+}: PromptInputActionMenuItemProps) => (
+  <DropdownMenuItem className={cn(className)} {...props} />
+);
+
+// Note: Actions that perform side-effects (like opening a file dialog)
+// are provided in opt-in modules (e.g., prompt-input-attachments).
+
+export type PromptInputSubmitProps = ComponentProps<typeof Button> & {
+  status?: ChatStatus;
+  onStop?: () => void;
+};
+export const PromptInputSubmit = ({
+  className,
+  variant = "default",
+  size = "icon",
+  status,
+  onStop,
+  children,
+  ...props
+}: PromptInputSubmitProps) => {
+  let Icon = <ArrowUpIcon className="!size-5" />;
+
+  if (status === "submitted") {
+    Icon = <Spinner className="size-4" />;
+  } else if (status === "streaming") {
+    Icon = <StopIcon className="size-4" />;
+  } else if (status === "error") {
+    Icon = <XMarkIcon className="size-4" />;
+  }
+
+  const handleClick = (e: React.MouseEvent<HTMLButtonElement>) => {
+    if (status === "streaming" && onStop) {
+      e.preventDefault();
+      onStop();
+    }
+  };
+
+  return (
+    <Button
+      aria-label="Submit"
+      className={cn("gap-1.5 rounded-lg", className)}
+      size={size}
+      type="submit"
+      variant={variant}
+      onClick={handleClick}
+      {...props}
+    >
+      {children ?? Icon}
+    </Button>
+  );
+};
+
+export type PromptInputModelSelectProps = ComponentProps<typeof Select>;
+
+export const PromptInputModelSelect = (props: PromptInputModelSelectProps) => (
+  <Select {...props} />
+);
+
+export type PromptInputModelSelectTriggerProps = ComponentProps<
+  typeof SelectTrigger
+>;
+
+export const PromptInputModelSelectTrigger = ({
+  className,
+  ...props
+}: PromptInputModelSelectTriggerProps) => (
+  <SelectTrigger
+    className={cn(
+      "text-muted-foreground h-8 cursor-pointer border border-transparent bg-transparent font-medium shadow-none transition-colors",
+      "hover:border-border hover:bg-background/60 hover:text-foreground",
+      "data-[state=open]:border-border data-[state=open]:bg-background/60",
+      "focus-visible:border-ring focus:ring-ring/50 focus-visible:ring-ring/50 outline-none focus:ring-[3px] focus:outline-none focus-visible:ring-[3px]",
+      className,
+    )}
+    {...props}
+  />
+);
+
+export type PromptInputModelSelectContentProps = ComponentProps<
+  typeof SelectContent
+>;
+
+export const PromptInputModelSelectContent = ({
+  className,
+  ...props
+}: PromptInputModelSelectContentProps) => (
+  <SelectContent className={cn(className)} {...props} />
+);
+
+export type PromptInputModelSelectItemProps = ComponentProps<typeof SelectItem>;
+
+export const PromptInputModelSelectItem = ({
+  className,
+  ...props
+}: PromptInputModelSelectItemProps) => (
+  <SelectItem className={cn(className)} {...props} />
+);
+
+export type PromptInputModelSelectValueProps = ComponentProps<
+  typeof SelectValue
+>;
+
+export const PromptInputModelSelectValue = ({
+  className,
+  ...props
+}: PromptInputModelSelectValueProps) => (
+  <SelectValue className={cn(className)} {...props} />
+);

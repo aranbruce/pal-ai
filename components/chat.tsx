@@ -1,102 +1,481 @@
 "use client";
 
-import { generateId } from "ai";
-import { useAIState, useActions, useUIState } from "ai/rsc";
-import { useEffect, useState } from "react";
+import { Action, Actions } from "@/components/ai-elements/actions";
+import { ChatImage } from "@/components/ai-elements/chat-image";
+import {
+  Conversation,
+  ConversationContent,
+  ConversationEmptyState,
+  ConversationScrollButton,
+} from "@/components/ai-elements/conversation";
+import { Image } from "@/components/ai-elements/image";
+import { Message, MessageContent } from "@/components/ai-elements/message";
+import {
+  PromptInput,
+  PromptInputActionAddAttachments,
+  PromptInputActionMenu,
+  PromptInputActionMenuContent,
+  PromptInputActionMenuTrigger,
+  PromptInputAttachment,
+  PromptInputAttachments,
+  PromptInputBody,
+  type PromptInputMessage,
+  PromptInputModelSelect,
+  PromptInputModelSelectContent,
+  PromptInputModelSelectItem,
+  PromptInputModelSelectTrigger,
+  PromptInputModelSelectValue,
+  PromptInputSubmit,
+  PromptInputTextarea,
+  PromptInputToggleButton,
+  PromptInputToolbar,
+  PromptInputTools,
+} from "@/components/ai-elements/prompt-input";
+import {
+  Reasoning,
+  ReasoningContent,
+  ReasoningTrigger,
+} from "@/components/ai-elements/reasoning";
+import { Response } from "@/components/ai-elements/response";
+import {
+  Source,
+  Sources,
+  SourcesContent,
+  SourcesTrigger,
+} from "@/components/ai-elements/sources";
+import { Suggestion, Suggestions } from "@/components/ai-elements/suggestion";
+import { getProviderLogo } from "@/components/provider-logos";
+import { ToolRenderer } from "@/components/tool-renderer";
+import { DEFAULT_SUGGESTIONS } from "@/lib/chat-constants";
+import type { ConversationDemoProps, UserLocation } from "@/lib/chat-types";
+import { extractSourcesFromMessage, isToolUIPart } from "@/lib/chat-utils";
+import { useChat } from "@ai-sdk/react";
+import { Square2StackIcon } from "@heroicons/react/16/solid";
+import {
+  ArrowPathIcon,
+  GlobeEuropeAfricaIcon,
+  XCircleIcon,
+} from "@heroicons/react/20/solid";
+import type { Experimental_GeneratedImage } from "ai";
+import { DefaultChatTransport } from "ai";
+import { Fragment, useEffect, useState } from "react";
 
-import type { AIState, ClientMessage } from "@/app/ai";
-import EmptyScreen from "@/components/empty-screen";
-import MessageList from "@/components/message-list";
-import PromptForm from "@/components/prompt-form";
+const ConversationDemo = ({ models, defaultModel }: ConversationDemoProps) => {
+  const [text, setText] = useState<string>("");
+  const [model, setModel] = useState<string>(
+    defaultModel || models[0]?.id || "",
+  );
+  const [userLocation, setUserLocation] = useState<UserLocation | null>(null);
+  const [useWebSearch, setUseWebSearch] = useState<boolean>(true);
 
-import useFileUpload from "@/libs/hooks/use-file-upload";
-import useLocation from "@/libs/hooks/use-location";
-import { useScrollAnchor } from "@/libs/hooks/use-scroll-anchor";
-
-export default function Chat() {
-  const [inputValue, setInputValue] = useState("");
-  const [messages, setMessages] = useUIState();
-  const [aiState, setAIState] = useAIState();
-
-  const { continueConversation } = useActions();
-
-  const { messagesRef, scrollRef, visibilityRef, isAtBottom, scrollToBottom } =
-    useScrollAnchor();
-
-  // eslint-disable-next-line
-  const { location } = useLocation();
-
-  const { fileUpload, setFileUpload, handleFileUpload, inputFileRef } =
-    useFileUpload();
-
+  // Request user's location on component mount
   useEffect(() => {
-    scrollToBottom();
-  }, [messages, scrollToBottom]);
-
-  function resetFileUpload() {
-    setFileUpload(null);
-    if (inputFileRef.current) {
-      inputFileRef.current.value = "";
+    if ("geolocation" in navigator) {
+      navigator.geolocation.getCurrentPosition(
+        (position) => {
+          setUserLocation({
+            latitude: position.coords.latitude,
+            longitude: position.coords.longitude,
+          });
+        },
+        () => {
+          // Silently fail - location is optional
+        },
+        {
+          enableHighAccuracy: false,
+          timeout: 5000,
+          maximumAge: 300000, // Cache for 5 minutes
+        },
+      );
     }
-  }
+  }, []);
 
-  function addMessage(message: ClientMessage) {
-    setMessages((messages: ClientMessage[]) => [...messages, message]);
-  }
+  const { messages, status, sendMessage, stop, setMessages } = useChat({
+    transport: new DefaultChatTransport({
+      api: "/api/chat",
+    }),
+  });
 
-  async function sendMessage(message: string) {
-    if (!aiState.isFinished || !message || fileUpload?.isUploading) return;
+  const handleSubmit = (message: PromptInputMessage) => {
+    // Prevent submission while streaming
+    if (status === "streaming") {
+      return;
+    }
 
-    resetFileUpload();
-    setInputValue("");
+    const hasText = Boolean(message.text);
+    const hasAttachments = Boolean(message.files?.length);
 
-    setAIState((AIState: AIState) => ({ ...AIState, isFinished: false }));
+    if (!(hasText || hasAttachments)) {
+      return;
+    }
 
-    addMessage({
-      id: generateId(),
-      role: "user",
-      content: message,
-      file: fileUpload
-        ? {
-            url: fileUpload.url,
-            downloadUrl: fileUpload.downloadUrl,
-            pathname: fileUpload.pathname,
-            contentType: fileUpload.contentType || "",
-            contentDisposition: fileUpload.contentDisposition || "",
-          }
-        : undefined,
-      model: aiState.currentModelVariable,
-    });
-    const response = await continueConversation(message, fileUpload);
-    // wait 300ms
-    await new Promise((resolve) => setTimeout(resolve, 300));
+    sendMessage(
+      {
+        text: message.text || "Sent with attachments",
+        files: message.files,
+      },
+      {
+        body: {
+          model: model,
+          webSearch: useWebSearch,
+          data: userLocation
+            ? {
+                location: {
+                  coordinates: {
+                    latitude: userLocation.latitude,
+                    longitude: userLocation.longitude,
+                  },
+                },
+              }
+            : undefined,
+        },
+      },
+    );
+    setText("");
+  };
 
-    addMessage(response);
-  }
+  const handleSuggestionClick = (suggestion: string) => {
+    sendMessage(
+      { text: suggestion },
+      {
+        body: {
+          model: model,
+          webSearch: useWebSearch,
+          data: userLocation
+            ? {
+                location: {
+                  coordinates: {
+                    latitude: userLocation.latitude,
+                    longitude: userLocation.longitude,
+                  },
+                },
+              }
+            : undefined,
+        },
+      },
+    );
+  };
 
   return (
-    <div className="h-svh w-full overflow-scroll" ref={scrollRef}>
-      <div
-        ref={messagesRef}
-        className="mx-auto max-w-2xl px-3 pb-[256px] pt-32"
-      >
-        {messages.length ? (
-          <MessageList messages={messages} visibilityRef={visibilityRef} />
-        ) : (
-          <EmptyScreen />
-        )}
+    <div className="relative size-full pb-2 md:pb-4">
+      <div className="flex h-full flex-col items-center">
+        <Conversation className="w-full">
+          <ConversationContent className="mx-auto w-full max-w-3xl pt-20">
+            {messages.length === 0 ? (
+              <>
+                <ConversationEmptyState
+                  title="Hi I'm Pal AI"
+                  description="How can I assist you today?"
+                />
+                <Suggestions className="mt-6">
+                  {DEFAULT_SUGGESTIONS.map((suggestion) => (
+                    <Suggestion
+                      key={suggestion}
+                      onClick={handleSuggestionClick}
+                      suggestion={suggestion}
+                    />
+                  ))}
+                </Suggestions>
+              </>
+            ) : (
+              messages.map((message, messageIndex) => {
+                // Separate images from other content for user messages
+                const imageParts =
+                  message.role === "user"
+                    ? message.parts.filter(
+                        (part) =>
+                          part.type === "file" &&
+                          part.mediaType?.startsWith("image/"),
+                      )
+                    : [];
+
+                return (
+                  <Fragment key={message.id}>
+                    {/* Render user images outside and above the message */}
+                    {message.role === "user" && imageParts.length > 0 && (
+                      <div className="-mb-2 flex w-full justify-end">
+                        <div className="flex max-w-60 flex-wrap gap-2">
+                          {imageParts.map(
+                            (part, i) =>
+                              part.type === "file" && (
+                                <ChatImage
+                                  key={`${message.id}-img-${i}`}
+                                  src={part.url}
+                                  alt={part.filename || "Uploaded image"}
+                                />
+                              ),
+                          )}
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Render sources for assistant messages */}
+                    {message.role === "assistant" &&
+                      (() => {
+                        const sources = extractSourcesFromMessage(message);
+                        if (sources.length > 0) {
+                          return (
+                            <Sources>
+                              <SourcesTrigger count={sources.length} />
+                              <SourcesContent>
+                                {sources.map((source, idx) => (
+                                  <Source
+                                    key={`${message.id}-source-${idx}`}
+                                    href={source.url}
+                                    title={source.title}
+                                  />
+                                ))}
+                              </SourcesContent>
+                            </Sources>
+                          );
+                        }
+                        return null;
+                      })()}
+
+                    <Message from={message.role}>
+                      <MessageContent variant="flat">
+                        {message.parts.map((part, i) => {
+                          switch (part.type) {
+                            case "reasoning":
+                              return (
+                                <Reasoning
+                                  key={`${message.id}-${i}`}
+                                  className="w-full"
+                                  isStreaming={
+                                    status === "streaming" &&
+                                    i === message.parts.length - 1 &&
+                                    message.id === messages.at(-1)?.id
+                                  }
+                                >
+                                  <ReasoningTrigger />
+                                  <ReasoningContent>
+                                    {part.text}
+                                  </ReasoningContent>
+                                </Reasoning>
+                              );
+                            case "text":
+                              // Skip empty text parts
+                              if (!part.text || part.text.trim() === "") {
+                                return null;
+                              }
+
+                              return (
+                                <Response
+                                  key={`${message.id}-${part.type}-${i}`}
+                                >
+                                  {part.text}
+                                </Response>
+                              );
+                            case "file":
+                              // For user messages, images are rendered above, so skip here
+                              if (
+                                message.role === "user" &&
+                                part.mediaType?.startsWith("image/")
+                              ) {
+                                return null;
+                              }
+                              // For assistant messages, render images inline
+                              if (part.mediaType?.startsWith("image/")) {
+                                return (
+                                  <ChatImage
+                                    key={`${message.id}-${part.type}-${i}`}
+                                    src={part.url}
+                                    alt={part.filename || "Uploaded image"}
+                                  />
+                                );
+                              }
+                              return null;
+                            default:
+                              // Handle tool calls
+                              if (isToolUIPart(part)) {
+                                return (
+                                  <ToolRenderer
+                                    key={`${message.id}-${part.type}-${i}`}
+                                    part={part}
+                                    messageId={message.id}
+                                    partIndex={i}
+                                  />
+                                );
+                              }
+                              // Handle experimental image parts
+                              if (
+                                "image" in part &&
+                                part.image &&
+                                typeof part.image === "object" &&
+                                "base64" in part.image
+                              ) {
+                                const imageData =
+                                  part.image as Experimental_GeneratedImage;
+                                return (
+                                  <Image
+                                    key={`${message.id}-${part.type}-${i}`}
+                                    base64={imageData.base64}
+                                    mediaType={imageData.mediaType}
+                                    alt="Generated image"
+                                  />
+                                );
+                              }
+                              return null;
+                          }
+                        })}
+                      </MessageContent>
+                    </Message>
+                    {message.role === "assistant" &&
+                      (messageIndex !== messages.length - 1 ||
+                        status !== "streaming") && (
+                        <Actions>
+                          <Action
+                            onClick={() => {
+                              const textContent = message.parts
+                                .filter((part) => part.type === "text")
+                                .map((part) => part.text)
+                                .join("\n");
+                              navigator.clipboard.writeText(textContent);
+                            }}
+                            label="Copy"
+                            tooltip="Copy message"
+                          >
+                            <Square2StackIcon />
+                          </Action>
+                          {messageIndex === messages.length - 1 && (
+                            <Action
+                              onClick={() => {
+                                // Find the last user message to regenerate
+                                const lastUserMessage = messages
+                                  .slice(0, messageIndex)
+                                  .reverse()
+                                  .find((m) => m.role === "user");
+
+                                if (lastUserMessage) {
+                                  // Remove both the last assistant message and last user message
+                                  const messagesWithoutLastTwo = messages.slice(
+                                    0,
+                                    -2,
+                                  );
+                                  setMessages(messagesWithoutLastTwo);
+
+                                  const textContent = lastUserMessage.parts
+                                    .filter((part) => part.type === "text")
+                                    .map((part) => part.text)
+                                    .join("\n");
+
+                                  sendMessage(
+                                    { text: textContent },
+                                    {
+                                      body: {
+                                        model: model,
+                                        webSearch: useWebSearch,
+                                      },
+                                    },
+                                  );
+                                }
+                              }}
+                              label="Regenerate"
+                              tooltip="Regenerate response"
+                            >
+                              <ArrowPathIcon />
+                            </Action>
+                          )}
+                        </Actions>
+                      )}
+                  </Fragment>
+                );
+              })
+            )}
+          </ConversationContent>
+          <ConversationScrollButton />
+        </Conversation>
+
+        <PromptInput
+          onSubmit={handleSubmit}
+          className="mx-3 w-[calc(100%-1.5rem)] max-w-3xl"
+          globalDrop
+          multiple
+        >
+          <PromptInputBody>
+            <PromptInputAttachments>
+              {(attachment) => <PromptInputAttachment data={attachment} />}
+            </PromptInputAttachments>
+            <PromptInputTextarea
+              onChange={(e) => setText(e.target.value)}
+              value={text}
+            />
+          </PromptInputBody>
+          <PromptInputToolbar>
+            <PromptInputTools className="min-w-0">
+              <PromptInputActionMenu>
+                <PromptInputActionMenuTrigger className="shrink-0" />
+                <PromptInputActionMenuContent>
+                  <PromptInputActionAddAttachments />
+                </PromptInputActionMenuContent>
+              </PromptInputActionMenu>
+              <PromptInputToggleButton
+                className="shrink-0"
+                active={useWebSearch}
+                onClick={() => setUseWebSearch(!useWebSearch)}
+                activeIcon={
+                  <>
+                    <GlobeEuropeAfricaIcon className="size-4 group-hover:hidden" />
+                    <XCircleIcon className="group:text-primary/40 text-muted-foreground hidden size-4 group-hover:block" />
+                    <span className="hidden sm:inline">Search</span>
+                  </>
+                }
+                inactiveIcon={
+                  <>
+                    <GlobeEuropeAfricaIcon className="size-4" />
+                    <span className="hidden sm:inline">Search</span>
+                  </>
+                }
+              />
+              <PromptInputModelSelect
+                onValueChange={(value) => {
+                  setModel(value);
+                }}
+                value={model}
+              >
+                <PromptInputModelSelectTrigger className="min-w-0">
+                  {(() => {
+                    const selectedModel = models.find((m) => m.id === model);
+                    if (!selectedModel) {
+                      return (
+                        <PromptInputModelSelectValue placeholder="Select model" />
+                      );
+                    }
+                    const Logo = getProviderLogo(selectedModel.provider);
+                    return (
+                      <div className="flex min-w-0 items-center gap-2 overflow-hidden">
+                        <Logo className="h-4 w-4 shrink-0" />
+                        <span className="truncate">{selectedModel.name}</span>
+                      </div>
+                    );
+                  })()}
+                </PromptInputModelSelectTrigger>
+                <PromptInputModelSelectContent>
+                  {models.map((m) => {
+                    const Logo = getProviderLogo(m.provider);
+                    return (
+                      <PromptInputModelSelectItem key={m.id} value={m.id}>
+                        <div className="flex items-center gap-2">
+                          <Logo className="h-4 w-4 shrink-0" />
+                          <span>{m.name}</span>
+                        </div>
+                      </PromptInputModelSelectItem>
+                    );
+                  })}
+                </PromptInputModelSelectContent>
+              </PromptInputModelSelect>
+            </PromptInputTools>
+            <PromptInputSubmit
+              className="shrink-0"
+              disabled={!text && status !== "streaming"}
+              status={status}
+              onStop={stop}
+            />
+          </PromptInputToolbar>
+        </PromptInput>
       </div>
-      <PromptForm
-        inputValue={inputValue}
-        setInputValue={setInputValue}
-        handleSubmit={sendMessage}
-        isAtBottom={isAtBottom}
-        scrollToBottom={scrollToBottom}
-        handleFileUpload={handleFileUpload}
-        inputFileRef={inputFileRef}
-        fileUpload={fileUpload}
-        setFileUpload={setFileUpload}
-      />
     </div>
   );
-}
+};
+
+export default ConversationDemo;

@@ -1,41 +1,60 @@
 import Image from "next/image";
 
-export enum WeatherTypeProps {
-  Thunderstorm = "Thunderstorm",
-  Drizzle = "Drizzle",
-  Rain = "Rain",
-  Snow = "Snow",
-  Mist = "Mist",
-  Smoke = "Smoke",
-  Haze = "Haze",
-  Dust = "Dust",
-  Fog = "Fog",
-  Sand = "Sand",
-  Ash = "Ash",
-  Squall = "Squall",
-  Tornado = "Tornado",
-  Clear = "Clear",
-  Clouds = "Clouds",
+export type WeatherType =
+  | "Clear"
+  | "Clouds"
+  | "Rain"
+  | "Drizzle"
+  | "Thunderstorm"
+  | "Snow"
+  | "Mist"
+  | "Smoke"
+  | "Haze"
+  | "Dust"
+  | "Fog"
+  | "Sand"
+  | "Ash"
+  | "Squall"
+  | "Tornado";
+
+interface WeatherImageProps {
+  weather: WeatherType;
+  width?: number;
+  height?: number;
+  className?: string;
 }
 
-type WeatherImageProps = {
-  height: number;
-  width: number;
-  weather: WeatherTypeProps;
-};
-
 export default function WeatherImage({
-  height,
-  width,
   weather,
+  width = 64,
+  height = 64,
+  className,
 }: WeatherImageProps) {
+  const weatherIconMap: Record<WeatherType, string> = {
+    Clear: "/images/weather/clear.svg",
+    Clouds: "/images/weather/clouds.svg",
+    Rain: "/images/weather/rain.svg",
+    Drizzle: "/images/weather/drizzle.svg",
+    Thunderstorm: "/images/weather/thunderstorm.svg",
+    Snow: "/images/weather/snow.svg",
+    Mist: "/images/weather/mist.svg",
+    Smoke: "/images/weather/smoke.svg",
+    Haze: "/images/weather/haze.svg",
+    Dust: "/images/weather/dust.svg",
+    Fog: "/images/weather/fog.svg",
+    Sand: "/images/weather/sand.svg",
+    Ash: "/images/weather/ash.svg",
+    Squall: "/images/weather/squall.svg",
+    Tornado: "/images/weather/tornado.svg",
+  };
+
   return (
     <Image
-      src={`/images/weather/${weather.toLowerCase()}.svg`} // Use the lowercase weather value in the image source URL
-      alt={JSON.stringify(weather)}
+      src={weatherIconMap[weather] || weatherIconMap.Clear}
+      alt={`${weather} weather icon`}
       width={width}
       height={height}
-      blurDataURL={`/weather/${weather.toLowerCase()}.svg`}
+      className={className}
     />
   );
 }
