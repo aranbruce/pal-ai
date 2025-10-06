@@ -1,4 +1,5 @@
 import Chat from "@/components/chat";
+import { gateway } from "@ai-sdk/gateway";
 
 export const dynamic = "force-dynamic";
 export const maxDuration = 60;
@@ -11,31 +12,28 @@ interface Model {
 
 async function getModels(): Promise<Model[]> {
   try {
-    const baseUrl =
-      process.env.NEXT_PUBLIC_BASE_URL ||
-      (process.env.VERCEL_URL
-        ? `https://${process.env.VERCEL_URL}`
-        : "http://localhost:3000");
+    const { models } = await gateway.getAvailableModels();
+    const textModels = models.filter((m) => m.modelType === "language");
+    console.log("🌐 Fetched", textModels.length, "text models from gateway");
 
-    const response = await fetch(`${baseUrl}/api/models`, {
-      cache: "no-store",
+    // Transform models into provider/name structure
+    const formattedModels = textModels.map((m) => {
+      const [provider, ...nameParts] = m.id.split("/");
+      return {
+        provider,
+        name: nameParts.join("/"), // Handle cases where name might contain '/'
+        id: m.id,
+      };
     });
 
-    if (!response.ok) {
-      console.error("Failed to fetch models");
-      return [];
-    }
-
-    const data = await response.json();
-    return data.models || [];
+    return formattedModels;
   } catch (error) {
-    console.error("Error fetching models:", error);
+    console.error("❌ Error fetching models:", error);
     return [];
   }
 }
 
 export default async function Page() {
   const models = await getModels();
-
   return <Chat models={models} defaultModel="alibaba/qwen3-vl-thinking" />;
 }
