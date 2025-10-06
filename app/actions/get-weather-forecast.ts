@@ -1,31 +1,22 @@
 "use server";
 
-import { GetWeatherForecastRequest } from "@/lib/schema";
-import getCoordinatesFromLocation from "./get-coordinates-from-location";
+import {
+  GetWeatherForecastRequest,
+  WeatherForecastResponse,
+} from "@/lib/schema";
 
 export async function getWeatherForecast({
-  location,
+  latitude,
+  longitude,
   forecastDays,
-  countryCode,
   units = "metric",
-}: GetWeatherForecastRequest) {
-  console.log("Request received for the weather-forecast action");
-
-  if (!units || (units !== "metric" && units !== "imperial")) {
-    units = "metric";
-  }
-
+}: GetWeatherForecastRequest): Promise<WeatherForecastResponse> {
   if (forecastDays < 1) {
     throw new Error("forecastDays must be at least 1");
   }
   if (forecastDays > 7) {
     throw new Error("forecastDays must be no more than 7");
   }
-
-  const { latitude, longitude } = await getCoordinatesFromLocation({
-    location,
-    countryCode,
-  });
 
   try {
     const url = new URL(
@@ -45,32 +36,38 @@ export async function getWeatherForecast({
     if (!response.ok) {
       throw new Error(`HTTP error! status: ${response.status}`);
     }
-    let responseJson = await response.json();
 
-    // make the response array the same length as the forecastDays
-    responseJson.daily = responseJson.daily.slice(0, forecastDays);
+    const responseJson = await response.json();
 
-    responseJson = {
-      lat: responseJson.lat,
-      lon: responseJson.lon,
+    const weatherForecast: WeatherForecastResponse = {
+      latitude,
+      longitude,
       timezone: responseJson.timezone,
       timezone_offset: responseJson.timezone_offset,
-      location: location,
-      forecastDays: forecastDays,
-      countryCode: countryCode,
-      daily: responseJson.daily.map((day: any, index: number) => ({
-        dayIndex: index,
-        temperatureMain: day.temp.day,
-        temperatureMin: day.temp.min,
-        temperatureMax: day.temp.max,
-        weather: day.weather[0].main,
-        units: units,
-      })),
+      forecastDays,
+      units,
+      daily: responseJson.daily.slice(0, forecastDays).map(
+        (
+          day: {
+            temp: { day: number; min: number; max: number };
+            weather: { main: string }[];
+          },
+          index: number,
+        ) => ({
+          dayIndex: index,
+          temperatureMain: Math.round(day.temp.day),
+          temperatureMin: Math.round(day.temp.min),
+          temperatureMax: Math.round(day.temp.max),
+          weather: day.weather[0].main,
+        }),
+      ),
     };
 
-    return responseJson;
+    return weatherForecast;
   } catch (error) {
-    console.error("Error:", error);
-    return { error: `Error occurred: ${error}` };
+    console.error("Error fetching weather forecast:", error);
+    throw new Error(
+      `Failed to fetch weather forecast: ${error instanceof Error ? error.message : "Unknown error"}`,
+    );
   }
 }

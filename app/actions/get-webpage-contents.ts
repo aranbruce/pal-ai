@@ -10,9 +10,6 @@ interface WebpageResult {
 }
 
 export async function getWebpageContents(urls: string[]) {
-  console.log("Request received for get webpage contents action");
-  console.log("URLs: ", urls);
-
   try {
     if (!urls || urls.length === 0) {
       throw new Error("Invalid URL - at least one URL is required");
@@ -22,13 +19,15 @@ export async function getWebpageContents(urls: string[]) {
     const results = response.results;
 
     // Return only the serializable fields we need, avoiding circular references
-    const cleanResults: WebpageResult[] = results.map((result: any) => ({
-      url: result.url || "",
-      rawContent:
-        result.rawContent && result.rawContent.length > 5000
-          ? result.rawContent.substring(0, 5000)
-          : result.rawContent || "",
-    }));
+    const cleanResults: WebpageResult[] = results.map(
+      (result: { url?: string; rawContent?: string }) => ({
+        url: result.url || "",
+        rawContent:
+          result.rawContent && result.rawContent.length > 5000
+            ? result.rawContent.substring(0, 5000)
+            : result.rawContent || "",
+      }),
+    );
 
     return cleanResults;
   } catch (error) {

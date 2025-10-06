@@ -101,7 +101,7 @@ export const AnthropicLogo = ({ size = 16, ...props }: ProviderLogoProps) => (
   </svg>
 );
 
-export const CohereLogo = ({ size = 16, ...props }: ProviderLogoProps) => (
+export const CohereLogo = ({ size = 16 }: ProviderLogoProps) => (
   <svg
     xmlns="http://www.w3.org/2000/svg"
     width={size}
@@ -129,7 +129,7 @@ export const CohereLogo = ({ size = 16, ...props }: ProviderLogoProps) => (
   </svg>
 );
 
-export const DeepseekLogo = ({ size = 16, ...props }: ProviderLogoProps) => (
+export const DeepseekLogo = ({ size = 16 }: ProviderLogoProps) => (
   <svg
     xmlns="http://www.w3.org/2000/svg"
     viewBox="0 0 30 30"
@@ -146,7 +146,7 @@ export const DeepseekLogo = ({ size = 16, ...props }: ProviderLogoProps) => (
   </svg>
 );
 
-export const GoogleLogo = ({ size = 16, ...props }: ProviderLogoProps) => (
+export const GoogleLogo = ({ size = 16 }: ProviderLogoProps) => (
   <svg
     xmlns="http://www.w3.org/2000/svg"
     viewBox="0 0 24 24"
@@ -173,14 +173,13 @@ export const GoogleLogo = ({ size = 16, ...props }: ProviderLogoProps) => (
   </svg>
 );
 
-export const InceptionLogo = ({ size = 16, ...props }: ProviderLogoProps) => (
+export const InceptionLogo = ({ size = 16 }: ProviderLogoProps) => (
   <svg
     xmlns="http://www.w3.org/2000/svg"
     width={size}
     height={size}
     viewBox="0 0 24 24"
     fill="currentColor"
-    {...props}
   >
     {/* Placeholder - Replace with actual Inception logo */}
     <rect width="24" height="24" rx="4" fill="#6B46C1" />
@@ -198,14 +197,13 @@ export const InceptionLogo = ({ size = 16, ...props }: ProviderLogoProps) => (
   </svg>
 );
 
-export const MeituanLogo = ({ size = 16, ...props }: ProviderLogoProps) => (
+export const MeituanLogo = ({ size = 16 }: ProviderLogoProps) => (
   <svg
     xmlns="http://www.w3.org/2000/svg"
     width={size}
     height={size}
     viewBox="0 0 24 24"
     fill="currentColor"
-    {...props}
   >
     {/* Placeholder - Replace with actual Meituan logo */}
     <rect width="24" height="24" rx="4" fill="#FFD100" />
@@ -223,13 +221,12 @@ export const MeituanLogo = ({ size = 16, ...props }: ProviderLogoProps) => (
   </svg>
 );
 
-export const MetaLogo = ({ size = 16, ...props }: ProviderLogoProps) => (
+export const MetaLogo = ({ size = 16 }: ProviderLogoProps) => (
   <svg
     xmlns="http://www.w3.org/2000/svg"
     width={size}
     height={size}
     viewBox="0 0 320 190"
-    {...props}
   >
     {" "}
     <defs>
@@ -276,7 +273,7 @@ export const MetaLogo = ({ size = 16, ...props }: ProviderLogoProps) => (
   </svg>
 );
 
-export const MistralLogo = ({ size = 16, ...props }: ProviderLogoProps) => (
+export const MistralLogo = ({ size = 16 }: ProviderLogoProps) => (
   <svg
     xmlns="http://www.w3.org/2000/svg"
     width={size}
@@ -365,7 +362,7 @@ export const MistralLogo = ({ size = 16, ...props }: ProviderLogoProps) => (
   </svg>
 );
 
-export const MoonshotaiLogo = ({ size = 16, ...props }: ProviderLogoProps) => (
+export const MoonshotaiLogo = ({ size = 16 }: ProviderLogoProps) => (
   <svg
     xmlns="http://www.w3.org/2000/svg"
     fill="currentColor"
@@ -380,14 +377,13 @@ export const MoonshotaiLogo = ({ size = 16, ...props }: ProviderLogoProps) => (
   </svg>
 );
 
-export const MorphLogo = ({ size = 16, ...props }: ProviderLogoProps) => (
+export const MorphLogo = ({ size = 16 }: ProviderLogoProps) => (
   <svg
     xmlns="http://www.w3.org/2000/svg"
     width={size}
     height={size}
     viewBox="0 0 24 24"
     fill="currentColor"
-    {...props}
   >
     {/* Placeholder - Replace with actual Morph logo */}
     <rect width="24" height="24" rx="4" fill="#8B5CF6" />
@@ -405,7 +401,7 @@ export const MorphLogo = ({ size = 16, ...props }: ProviderLogoProps) => (
   </svg>
 );
 
-export const OpenAILogo = ({ size = 16, ...props }: ProviderLogoProps) => (
+export const OpenAILogo = ({ size = 16 }: ProviderLogoProps) => (
   <svg
     xmlns="http://www.w3.org/2000/svg"
     id="Layer_1"
@@ -419,7 +415,7 @@ export const OpenAILogo = ({ size = 16, ...props }: ProviderLogoProps) => (
   </svg>
 );
 
-export const PerplexityLogo = ({ size = 16, ...props }: ProviderLogoProps) => (
+export const PerplexityLogo = ({ size = 16 }: ProviderLogoProps) => (
   <svg
     xmlns="http://www.w3.org/2000/svg"
     width={size}
@@ -436,14 +432,13 @@ export const PerplexityLogo = ({ size = 16, ...props }: ProviderLogoProps) => (
   </svg>
 );
 
-export const StealthLogo = ({ size = 16, ...props }: ProviderLogoProps) => (
+export const StealthLogo = ({ size = 16 }: ProviderLogoProps) => (
   <svg
     xmlns="http://www.w3.org/2000/svg"
     width={size}
     height={size}
     viewBox="0 0 24 24"
     fill="currentColor"
-    {...props}
   >
     {/* Placeholder - Replace with actual Stealth logo */}
     <rect width="24" height="24" rx="4" fill="#1F2937" />
@@ -461,7 +456,7 @@ export const StealthLogo = ({ size = 16, ...props }: ProviderLogoProps) => (
   </svg>
 );
 
-export const VercelLogo = ({ size = 16, ...props }: ProviderLogoProps) => (
+export const VercelLogo = ({ size = 16 }: ProviderLogoProps) => (
   <svg
     xmlns="http://www.w3.org/2000/svg"
     fill="currentColor"
@@ -479,7 +474,7 @@ export const VercelLogo = ({ size = 16, ...props }: ProviderLogoProps) => (
   </svg>
 );
 
-export const XAILogo = ({ size = 16, ...props }: ProviderLogoProps) => (
+export const XAILogo = ({ size = 16 }: ProviderLogoProps) => (
   <svg
     xmlns="http://www.w3.org/2000/svg"
     version="1.1"
@@ -491,7 +486,6 @@ export const XAILogo = ({ size = 16, ...props }: ProviderLogoProps) => (
     width={size}
     height={size}
     fill="currentColor"
-    {...props}
   >
     <g>
       <polygon points="557.09,211.99 565.4,538.36 631.96,538.36 640.28,93.18  " />
@@ -502,14 +496,13 @@ export const XAILogo = ({ size = 16, ...props }: ProviderLogoProps) => (
   </svg>
 );
 
-export const ZaiLogo = ({ size = 16, ...props }: ProviderLogoProps) => (
+export const ZaiLogo = ({ size = 16 }: ProviderLogoProps) => (
   <svg
     xmlns="http://www.w3.org/2000/svg"
     width={size}
     height={size}
     viewBox="0 0 24 24"
     fill="currentColor"
-    {...props}
   >
     {/* Placeholder - Replace with actual Zai logo */}
     <rect width="24" height="24" rx="4" fill="#EC4899" />

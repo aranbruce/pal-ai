@@ -5,13 +5,7 @@ import Link from "next/link";
 import { Button } from "@/components//ui/button";
 import Header from "@/components/ui/header";
 
-export default function Error({
-  error,
-  reset,
-}: {
-  error: Error & { digest?: string };
-  reset: () => void;
-}) {
+export default function Error({ reset }: { reset: () => void }) {
   return (
     <>
       <Header />

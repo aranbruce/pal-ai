@@ -2,10 +2,10 @@ import { gateway } from "@ai-sdk/gateway";
 
 export async function GET() {
   const { models } = await gateway.getAvailableModels();
-  const textModels = models.filter((m: any) => m.modelType === "language");
+  const textModels = models.filter((m) => m.modelType === "language");
 
   // Transform models into provider/name structure
-  const formattedModels = textModels.map((m: any) => {
+  const formattedModels = textModels.map((m) => {
     const [provider, ...nameParts] = m.id.split("/");
     return {
       provider,

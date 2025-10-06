@@ -27,6 +27,7 @@ import {
 import { PaperClipIcon, XMarkIcon } from "@heroicons/react/24/outline";
 import type { ChatStatus, FileUIPart } from "ai";
 import { nanoid } from "nanoid";
+import NextImage from "next/image";
 import {
   type ChangeEventHandler,
   type ClipboardEventHandler,
@@ -89,8 +90,8 @@ export function PromptInputAttachment({
       {...props}
     >
       {data.mediaType?.startsWith("image/") && data.url ? (
-        <img
-          alt={data.filename || "attachment"}
+        <NextImage
+          alt={data.filename || ""}
           className="size-full rounded-md object-cover"
           height={56}
           src={data.url}
@@ -419,7 +420,7 @@ export const PromptInput = ({
 
     // Convert blob URLs to data URLs asynchronously
     Promise.all(
-      items.map(async ({ id, ...item }) => {
+      items.map(async (item) => {
         if (item.url && item.url.startsWith("blob:")) {
           return {
             ...item,

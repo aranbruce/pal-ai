@@ -40,8 +40,6 @@ function getDayOfWeek(day: number) {
 export default function WeatherForecastCard({
   data,
 }: WeatherForecastCardProps) {
-  const unitSymbol = data.daily[0]?.units === "metric" ? "°C" : "°F";
-
   return (
     <div className="not-prose flex w-full flex-col gap-2">
       <div

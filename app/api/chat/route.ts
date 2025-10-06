@@ -1,4 +1,6 @@
+import { getCoordinatesFromLocation } from "@/app/actions/get-coordinates-from-location";
 import { getCurrentWeather } from "@/app/actions/get-current-weather";
+import { getLocationFromCoordinates } from "@/app/actions/get-location-from-coordinates";
 import { getWeatherForecast } from "@/app/actions/get-weather-forecast";
 import { getWebResults } from "@/app/actions/get-web-results";
 import { getWebpageContents } from "@/app/actions/get-webpage-contents";
@@ -28,22 +30,14 @@ export async function POST(request: Request) {
     messages: UIMessage[];
     model?: string;
     webSearch?: boolean;
-    data?: any;
+    data?: {
+      location?: { coordinates?: { latitude: number; longitude: number } };
+    };
   } = await request.json();
-
-  console.log("Received request body:", {
-    messages: messages.length,
-    model,
-    webSearch,
-    data,
-  });
 
   const location = data?.location?.coordinates;
   const todaysDate = getTodaysDate();
   const selectedModel = model || "openai/gpt-5"; // Use the model from request or default to gpt-5
-  console.log("Web search enabled:", webSearch);
-
-  console.log("Selected model:", selectedModel);
 
   const result = streamText({
     model: selectedModel,
@@ -133,22 +127,23 @@ export async function POST(request: Request) {
       }),
       get_weather_forecast: tool({
         description:
-          "Get the weather forecast for a specific location for the next 1-7 days. Provide location name and optionally country code for accurate results.",
+          "Get the weather forecast for a specific location for the next 1-7 days using latitude and longitude coordinates. Returns daily temperature and weather conditions.",
         inputSchema: z.object({
-          location: z
-            .string()
-            .describe("The name of the location (city, town, etc.)"),
+          latitude: z
+            .number()
+            .min(-90)
+            .max(90)
+            .describe("Latitude of the location (-90 to 90)"),
+          longitude: z
+            .number()
+            .min(-180)
+            .max(180)
+            .describe("Longitude of the location (-180 to 180)"),
           forecastDays: z
             .number()
             .min(1)
             .max(7)
             .describe("Number of days to forecast (1-7)"),
-          countryCode: z
-            .string()
-            .optional()
-            .describe(
-              "Optional ISO 3166 country code (e.g., 'US', 'GB', 'CA')",
-            ),
           units: z
             .enum(["metric", "imperial"])
             .optional()
@@ -157,13 +152,50 @@ export async function POST(request: Request) {
               "Temperature units: 'metric' for Celsius, 'imperial' for Fahrenheit",
             ),
         }),
-        execute: async ({ location, forecastDays, countryCode, units }) => {
+        execute: async ({ latitude, longitude, forecastDays, units }) => {
           return await getWeatherForecast({
-            location,
+            latitude,
+            longitude,
             forecastDays,
-            countryCode,
             units,
           });
+        },
+      }),
+      get_coordinates_from_location: tool({
+        description:
+          "Convert a location name (city, town, etc.) to latitude and longitude coordinates. Useful for geocoding location names.",
+        inputSchema: z.object({
+          location: z
+            .string()
+            .describe("The name of the location (city, town, etc.)"),
+          countryCode: z
+            .string()
+            .optional()
+            .describe(
+              "Optional ISO 3166 country code (e.g., 'US', 'GB', 'CA') for more accurate results",
+            ),
+        }),
+        execute: async ({ location, countryCode }) => {
+          return await getCoordinatesFromLocation({ location, countryCode });
+        },
+      }),
+      get_location_from_coordinates: tool({
+        description:
+          "Convert latitude and longitude coordinates to a location name. Useful for reverse geocoding.",
+        inputSchema: z.object({
+          latitude: z
+            .number()
+            .min(-90)
+            .max(90)
+            .describe("Latitude of the location (-90 to 90)"),
+          longitude: z
+            .number()
+            .min(-180)
+            .max(180)
+            .describe("Longitude of the location (-180 to 180)"),
+        }),
+        execute: async ({ latitude, longitude }) => {
+          return await getLocationFromCoordinates({ latitude, longitude });
         },
       }),
     },
@@ -173,6 +205,7 @@ export async function POST(request: Request) {
       help users find information from the web, get the weather or find out the latest news.
       IMPORTANT: Respond in markdown format
       Today's date is ${todaysDate}.
+      ${location ? `The user's location is ${JSON.stringify(location)}.` : ""}
       The model you are using is ${selectedModel}.
       If asked to describe an image or asked about an image that the user has been provided, assume the user is visually impaired and provide a description of the image.
       
@@ -181,21 +214,22 @@ export async function POST(request: Request) {
       - You have access to a "search_web" tool that can find current information from the internet. Use it when users ask about recent events, current information, or need to find online resources.
       - You have access to a "get_webpage_contents" tool that can extract and return the contents of web pages. Use it to read articles, documentation, or any web content the user is interested in.
       - You have access to a "get_current_weather" tool that gets current weather using latitude/longitude coordinates.
-      - You have access to a "get_weather_forecast" tool that gets weather forecasts for 1-7 days using location name and optional country code.
-      - You have access to a "get_current_weather" tool that can provide the current weather and hourly forecast for a specific location. Use it when users ask about the weather.
+      - You have access to a "get_weather_forecast" tool that gets weather forecasts for 1-7 days using latitude/longitude coordinates.
+      - You have access to a "get_coordinates_from_location" tool that converts location names to latitude/longitude coordinates (geocoding). Use this first when users provide location names.
+      - You have access to a "get_location_from_coordinates" tool that converts latitude/longitude coordinates to location names (reverse geocoding).
+      - For weather requests with location names, first use "get_coordinates_from_location" to get coordinates, then use the weather tools.
       - When you use the "search_web" tool, always provide a concise summary of the results you found, including titles, URLs, and brief descriptions.
       - When you use the "get_webpage_contents" tool, summarize the key points from the extracted content to answer the user's query effectively.
       - When you use the "get_current_weather" tool, a beautiful interactive weather card is automatically displayed to the user showing the temperature, conditions, and hourly forecast.      
       `,
 
-    onFinish: async ({ response }) => {
+    onFinish: async () => {
       // You can implement chat saving here if needed
       // console.log("Chat finished", response);
     },
 
-    onAbort: ({ steps }) => {
+    onAbort: () => {
       // Handle cleanup when stream is aborted
-      console.log("Stream aborted after", steps.length, "steps");
       // You can add additional cleanup logic here, e.g.:
       // - Persist partial results to database
       // - Log abort events for analytics
@@ -205,14 +239,9 @@ export async function POST(request: Request) {
   return result.toUIMessageStreamResponse({
     sendReasoning: true, // Enable reasoning in UI messages
     sendSources: true, // Enable sources in UI messages
-    onFinish: async ({ isAborted }) => {
-      if (isAborted) {
-        console.log("Stream was aborted");
-        // Handle abort-specific cleanup
-      } else {
-        console.log("Stream completed normally");
-        // Handle normal completion
-      }
+    onFinish: async () => {
+      // Handle cleanup logic
+      // You can add abort-specific or normal completion logic here
     },
     consumeSseStream: consumeStream,
   });

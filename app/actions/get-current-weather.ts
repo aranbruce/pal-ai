@@ -1,34 +1,12 @@
 "use server";
 
-interface WeatherResult {
-  location?: string;
-  latitude: number;
-  longitude: number;
-  units: "metric" | "imperial";
-  currentDate: number;
-  currentHour: number;
-  current: {
-    temp: number;
-    weather: string;
-  };
-  hourly: Array<{
-    temp: number;
-    weather: string;
-  }>;
-}
+import { CurrentWeatherResponse, GetCurrentWeatherRequest } from "@/lib/schema";
 
 export async function getCurrentWeather({
   latitude,
   longitude,
   units = "metric",
-}: {
-  latitude: number;
-  longitude: number;
-  units?: "metric" | "imperial";
-}): Promise<WeatherResult> {
-  console.log("Request received for get-current-weather action");
-  console.log("Coordinates:", { latitude, longitude, units });
-
+}: GetCurrentWeatherRequest): Promise<CurrentWeatherResponse> {
   try {
     const url = new URL(
       `https://api.openweathermap.org/data/3.0/onecall?lat=${latitude}&lon=${longitude}&appid=${process.env.OPENWEATHER_API_KEY}&exclude=minutely,daily,alerts&units=${units}`,
@@ -37,7 +15,6 @@ export async function getCurrentWeather({
       Accept: "application/json",
       "Accept-Encoding": "gzip",
     };
-    console.log(`Requesting weather data from ${url}`);
 
     const response = await fetch(url, {
       method: "GET",
@@ -50,7 +27,7 @@ export async function getCurrentWeather({
 
     const responseJson = await response.json();
 
-    const weatherResult: WeatherResult = {
+    const weatherResult: CurrentWeatherResponse = {
       latitude,
       longitude,
       currentHour: new Date().getHours(),
@@ -60,10 +37,12 @@ export async function getCurrentWeather({
         temp: Math.round(responseJson.current.temp),
         weather: responseJson.current.weather[0].main,
       },
-      hourly: responseJson.hourly.slice(0, 24).map((hour: any) => ({
-        temp: Math.round(hour.temp),
-        weather: hour.weather[0].main,
-      })),
+      hourly: responseJson.hourly
+        .slice(0, 24)
+        .map((hour: { temp: number; weather: { main: string }[] }) => ({
+          temp: Math.round(hour.temp),
+          weather: hour.weather[0].main,
+        })),
     };
 
     return weatherResult;

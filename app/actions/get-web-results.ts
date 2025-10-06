@@ -28,8 +28,6 @@ export async function getWebResults({
   count = 8,
   offset,
 }: WebSearchRequest): Promise<WebSearchResult[] | { error: string }> {
-  console.log("Request received for get_web_results action");
-
   let freshnessParam = "";
 
   if (freshness) {
@@ -45,7 +43,7 @@ export async function getWebResults({
   }
 
   try {
-    let url = new URL(
+    const url = new URL(
       `https://api.search.brave.com/res/v1/web/search?q=${query}&text_decorations=0&count=${count}&result_filter=web`,
     );
 
@@ -86,16 +84,28 @@ export async function getWebResults({
       throw new Error("No results found");
     }
 
-    results = results.map((result: any, index: number) => ({
-      id: index + 1,
-      title: result.title,
-      url: result.url,
-      description: result.description,
-      date: result.page_age,
-      author: result.profile?.name,
-      imageURL: result.profile?.img,
-      extra: result.extra_snippets,
-    }));
+    results = results.map(
+      (
+        result: {
+          title: string;
+          url: string;
+          description: string;
+          page_age?: string;
+          profile?: { name?: string; img?: string };
+          extra_snippets?: string[];
+        },
+        index: number,
+      ) => ({
+        id: index + 1,
+        title: result.title,
+        url: result.url,
+        description: result.description,
+        date: result.page_age,
+        author: result.profile?.name,
+        imageURL: result.profile?.img,
+        extra: result.extra_snippets,
+      }),
+    );
 
     return results;
   } catch (error) {

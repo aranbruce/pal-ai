@@ -2,12 +2,10 @@
 
 import { CoordinatesResponse, GetCoordinatesRequest } from "@/lib/schema";
 
-export default async function getCoordinatesFromLocation({
+export async function getCoordinatesFromLocation({
   location,
   countryCode,
 }: GetCoordinatesRequest): Promise<CoordinatesResponse> {
-  console.log("Getting coordinates for location:", location, countryCode);
-
   try {
     const query = countryCode ? `${location},${countryCode}` : location;
     const url = new URL(
