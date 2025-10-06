@@ -208,6 +208,7 @@ export async function POST(request: Request) {
       ${location ? `The user's location is ${JSON.stringify(location)}.` : ""}
       The model you are using is ${selectedModel}.
       If asked to describe an image or asked about an image that the user has been provided, assume the user is visually impaired and provide a description of the image.
+      When you finish thinking and have gathered all the information you need, provide a final answer to the user that is concise and informative.
       
       IMPORTANT TOOL USAGE GUIDELINES:
       - When calling any tool, call the tool before providing your final answer.

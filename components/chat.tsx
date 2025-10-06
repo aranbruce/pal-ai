@@ -209,29 +209,6 @@ const ConversationDemo = ({ models, defaultModel }: ConversationDemoProps) => {
                       </div>
                     )}
 
-                    {/* Render sources for assistant messages */}
-                    {message.role === "assistant" &&
-                      (() => {
-                        const sources = extractSourcesFromMessage(message);
-                        if (sources.length > 0) {
-                          return (
-                            <Sources>
-                              <SourcesTrigger count={sources.length} />
-                              <SourcesContent>
-                                {sources.map((source, idx) => (
-                                  <Source
-                                    key={`${message.id}-source-${idx}`}
-                                    href={source.url}
-                                    title={source.title}
-                                  />
-                                ))}
-                              </SourcesContent>
-                            </Sources>
-                          );
-                        }
-                        return null;
-                      })()}
-
                     <Message from={message.role}>
                       <MessageContent variant="flat">
                         {message.parts.map((part, i) => {
@@ -320,6 +297,30 @@ const ConversationDemo = ({ models, defaultModel }: ConversationDemoProps) => {
                         })}
                       </MessageContent>
                     </Message>
+
+                    {/* Render sources for assistant messages */}
+                    {message.role === "assistant" &&
+                      (() => {
+                        const sources = extractSourcesFromMessage(message);
+                        if (sources.length > 0) {
+                          return (
+                            <Sources>
+                              <SourcesTrigger count={sources.length} />
+                              <SourcesContent>
+                                {sources.map((source, idx) => (
+                                  <Source
+                                    key={`${message.id}-source-${idx}`}
+                                    href={source.url}
+                                    title={source.title}
+                                  />
+                                ))}
+                              </SourcesContent>
+                            </Sources>
+                          );
+                        }
+                        return null;
+                      })()}
+
                     {message.role === "assistant" &&
                       (messageIndex !== messages.length - 1 ||
                         status !== "streaming") && (
