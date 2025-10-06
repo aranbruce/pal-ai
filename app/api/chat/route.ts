@@ -204,6 +204,7 @@ export async function POST(request: Request) {
 
   return result.toUIMessageStreamResponse({
     sendReasoning: true, // Enable reasoning in UI messages
+    sendSources: true, // Enable sources in UI messages
     onFinish: async ({ isAborted }) => {
       if (isAborted) {
         console.log("Stream was aborted");

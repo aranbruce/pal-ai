@@ -4,7 +4,7 @@ import {
   CheckIcon,
   ChevronDownIcon,
   ChevronUpIcon,
-} from "@heroicons/react/24/solid";
+} from "@heroicons/react/16/solid";
 import * as SelectPrimitive from "@radix-ui/react-select";
 import * as React from "react";
 

@@ -37,6 +37,12 @@ import {
   ReasoningTrigger,
 } from "@/components/ai-elements/reasoning";
 import { Response } from "@/components/ai-elements/response";
+import {
+  Source,
+  Sources,
+  SourcesContent,
+  SourcesTrigger,
+} from "@/components/ai-elements/sources";
 import { Suggestion, Suggestions } from "@/components/ai-elements/suggestion";
 import {
   Tool,
@@ -45,6 +51,7 @@ import {
   ToolInput,
   ToolOutput,
 } from "@/components/ai-elements/tool";
+import { getProviderLogo } from "@/components/provider-logos";
 import WeatherDisplay from "@/components/weather-display";
 import WeatherForecastCard from "@/components/weather-forecast-card";
 import { useChat } from "@ai-sdk/react";
@@ -150,6 +157,44 @@ function formatToolOutput(toolType: string, output: any): string {
 
   // Handle string output
   return String(output);
+}
+
+// Helper function to extract sources from web search results
+function extractSourcesFromMessage(
+  message: any,
+): Array<{ url: string; title: string }> {
+  const sources: Array<{ url: string; title: string }> = [];
+
+  if (!message.parts) return sources;
+
+  for (const part of message.parts) {
+    // Check if this is a web search tool with results
+    if (
+      isToolUIPart(part) &&
+      part.type.includes("search_web") &&
+      part.output &&
+      Array.isArray(part.output)
+    ) {
+      for (const result of part.output) {
+        if (result.url && result.title) {
+          sources.push({
+            url: result.url,
+            title: result.title,
+          });
+        }
+      }
+    }
+
+    // Check for source-url parts (from AI SDK's native source support)
+    if (part.type === "source-url" && part.url) {
+      sources.push({
+        url: part.url,
+        title: part.title || part.url,
+      });
+    }
+  }
+
+  return sources;
 }
 
 const ConversationDemo = ({ models, defaultModel }: ConversationDemoProps) => {
@@ -265,6 +310,29 @@ const ConversationDemo = ({ models, defaultModel }: ConversationDemoProps) => {
                         </div>
                       </div>
                     )}
+
+                    {/* Render sources for assistant messages */}
+                    {message.role === "assistant" &&
+                      (() => {
+                        const sources = extractSourcesFromMessage(message);
+                        if (sources.length > 0) {
+                          return (
+                            <Sources>
+                              <SourcesTrigger count={sources.length} />
+                              <SourcesContent>
+                                {sources.map((source, idx) => (
+                                  <Source
+                                    key={`${message.id}-source-${idx}`}
+                                    href={source.url}
+                                    title={source.title}
+                                  />
+                                ))}
+                              </SourcesContent>
+                            </Sources>
+                          );
+                        }
+                        return null;
+                      })()}
 
                     <Message from={message.role}>
                       <MessageContent variant="flat">
@@ -548,14 +616,34 @@ const ConversationDemo = ({ models, defaultModel }: ConversationDemoProps) => {
                 value={model}
               >
                 <PromptInputModelSelectTrigger>
-                  <PromptInputModelSelectValue placeholder="Select model" />
+                  {(() => {
+                    const selectedModel = models.find((m) => m.id === model);
+                    if (!selectedModel) {
+                      return (
+                        <PromptInputModelSelectValue placeholder="Select model" />
+                      );
+                    }
+                    const Logo = getProviderLogo(selectedModel.provider);
+                    return (
+                      <div className="flex items-center gap-2">
+                        <Logo className="h-4 w-4 shrink-0" />
+                        <span>{selectedModel.name}</span>
+                      </div>
+                    );
+                  })()}
                 </PromptInputModelSelectTrigger>
                 <PromptInputModelSelectContent>
-                  {models.map((m) => (
-                    <PromptInputModelSelectItem key={m.id} value={m.id}>
-                      {m.provider} - {m.name}
-                    </PromptInputModelSelectItem>
-                  ))}
+                  {models.map((m) => {
+                    const Logo = getProviderLogo(m.provider);
+                    return (
+                      <PromptInputModelSelectItem key={m.id} value={m.id}>
+                        <div className="flex items-center gap-2">
+                          <Logo className="h-4 w-4 shrink-0" />
+                          <span>{m.name}</span>
+                        </div>
+                      </PromptInputModelSelectItem>
+                    );
+                  })}
                 </PromptInputModelSelectContent>
               </PromptInputModelSelect>
             </PromptInputTools>

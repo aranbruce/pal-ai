@@ -9,7 +9,7 @@ export default function Header() {
       <div className="mx-auto flex w-full max-w-3xl items-center justify-between px-3">
         <Link
           href="/"
-          className="focus-visible:rounded-sm focus-visible:ring-2 focus-visible:ring-offset-2"
+          className="focus-visible:ring-ring/50 rounded-md outline-none focus-visible:ring-[3px]"
         >
           <div className="text-primary flex items-center gap-x-[10px] text-2xl font-medium">
             <Image
