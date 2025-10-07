@@ -720,7 +720,7 @@ export const PromptInputSubmit = ({
   } else if (status === "streaming") {
     Icon = <StopIcon className="size-4" />;
   } else if (status === "error") {
-    Icon = <XMarkIcon className="size-4" />;
+    Icon = <ArrowUpIcon className="!size-5" />;
   }
 
   const handleClick = (e: React.MouseEvent<HTMLButtonElement>) => {
