@@ -130,6 +130,7 @@
   --color-weather: var(--weather);
   --color-weather-foreground: var(--weather-foreground);
   --color-weather-muted: var(--weather-muted);
+  --color-weather-gradient: var(--weather-gradient);
 
   @keyframes message_appear {
     0% {
