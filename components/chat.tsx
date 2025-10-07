@@ -389,7 +389,7 @@ const ConversationDemo = ({ models, defaultModel }: ConversationDemoProps) => {
 
         <PromptInput
           onSubmit={handleSubmit}
-          className="mx-3 w-[calc(100%-1.5rem)] max-w-3xl"
+          className="mx-auto w-[calc(100%-2rem)] max-w-3xl"
           globalDrop
           multiple
         >
