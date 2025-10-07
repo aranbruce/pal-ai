@@ -27,11 +27,8 @@ export default function WeatherDisplay({ data }: WeatherDisplayProps) {
   const unitSymbol = data.units === "metric" ? "°C" : "°F";
 
   return (
-    <div className="not-prose flex w-full flex-col gap-2">
-      <div
-        className="text-weather-foreground flex w-full flex-col items-start gap-4 rounded-lg p-3 md:p-4"
-        style={{ background: "var(--weather-gradient)" }}
-      >
+    <div className="not-prose flex w-full flex-col items-start gap-2">
+      <div className="text-weather-foreground flex max-w-full flex-col items-start gap-4 rounded-lg bg-[image:var(--weather-gradient)] p-3 md:p-4">
         <div className="flex flex-col gap-1">
           <h5 className="text-xs font-medium opacity-90">
             {new Date(data.currentDate).toLocaleDateString(undefined, {

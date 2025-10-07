@@ -1,4 +1,5 @@
 import { ThemeProvider } from "@/components/theme-provider";
+import { Toaster } from "@/components/ui/sonner";
 import { Analytics } from "@vercel/analytics/react";
 import { GeistSans } from "geist/font/sans";
 import type { Metadata } from "next";
@@ -30,6 +31,7 @@ export default function RootLayout({
           >
             <Header />
             {children}
+            <Toaster closeButton />
             <Analytics />
           </ThemeProvider>
         </body>

@@ -59,6 +59,7 @@ import {
 import type { Experimental_GeneratedImage } from "ai";
 import { DefaultChatTransport } from "ai";
 import { Fragment, useEffect, useState } from "react";
+import { toast } from "sonner";
 
 const ConversationDemo = ({ models, defaultModel }: ConversationDemoProps) => {
   const [text, setText] = useState<string>("");
@@ -66,7 +67,7 @@ const ConversationDemo = ({ models, defaultModel }: ConversationDemoProps) => {
     defaultModel || models[0]?.id || "",
   );
   const [userLocation, setUserLocation] = useState<UserLocation | null>(null);
-  const [useWebSearch, setUseWebSearch] = useState<boolean>(true);
+  const [useWebSearch, setUseWebSearch] = useState<boolean>(false);
 
   // Request user's location on component mount
   useEffect(() => {
@@ -92,9 +93,45 @@ const ConversationDemo = ({ models, defaultModel }: ConversationDemoProps) => {
 
   const { messages, status, sendMessage, stop, setMessages } = useChat({
     transport: new DefaultChatTransport({
-      api: "/api/chat",
+      api:
+        process.env.NEXT_PUBLIC_USE_MOCK_API === "true"
+          ? "/api/chat-mock"
+          : "/api/chat",
     }),
+    onError: (error) => {
+      // Display user-friendly error message
+      console.error("Chat error:", error);
+
+      // Check if it's a network error
+      if (error.message.includes("fetch")) {
+        toast.error("Network Error", {
+          description:
+            "Unable to connect to the chat service. Please check your connection.",
+          position: "top-center",
+          dismissible: true,
+        });
+      } else if (error.message.includes("abort")) {
+        // Stream was aborted - this is handled separately
+        return;
+      } else {
+        toast.error("Something went wrong", {
+          description:
+            error.message || "An unexpected error occurred. Please try again.",
+          position: "top-center",
+          dismissible: true,
+        });
+      }
+    },
   });
+
+  const handleStop = () => {
+    stop();
+    toast.info("Response stopped", {
+      description: "The AI response has been stopped.",
+      position: "top-center",
+      dismissible: true,
+    });
+  };
 
   const handleSubmit = (message: PromptInputMessage) => {
     // Prevent submission while streaming
@@ -470,7 +507,7 @@ const ConversationDemo = ({ models, defaultModel }: ConversationDemoProps) => {
               className="shrink-0"
               disabled={!text && status !== "streaming"}
               status={status}
-              onStop={stop}
+              onStop={handleStop}
             />
           </PromptInputToolbar>
         </PromptInput>
