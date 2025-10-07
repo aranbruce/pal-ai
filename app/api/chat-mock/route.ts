@@ -1,12 +1,23 @@
 import type { UIMessage } from "ai";
 
+type MockChunk =
+  | { type: "error"; errorText: string }
+  | { type: "tool-input-start"; toolCallId: string; toolName: string }
+  | { type: "tool-input-delta"; toolCallId: string; inputTextDelta: string }
+  | { type: "tool-input-available"; toolCallId: string; toolName: string }
+  | { type: "tool-output-available"; toolCallId: string; output: string }
+  | { type: "text-start"; id: string }
+  | { type: "text-delta"; id: string; delta: string }
+  | { type: "text-end"; id: string }
+  | { type: "finish" };
+
 // Helper to convert chunk objects to SSE format
-function chunkToSSE(chunk: any): string {
+function chunkToSSE(chunk: MockChunk): string {
   return `data: ${JSON.stringify(chunk)}\n\n`;
 }
 
 // Helper to create a readable stream from chunks
-function createMockStream(chunks: any[]): ReadableStream<Uint8Array> {
+function createMockStream(chunks: MockChunk[]): ReadableStream<Uint8Array> {
   const encoder = new TextEncoder();
 
   return new ReadableStream({
@@ -46,7 +57,7 @@ export async function POST(req: Request) {
       webSearch || userText.toLowerCase().includes("search");
     const isError = userText.toLowerCase().includes("error");
 
-    let chunks: any[];
+    let chunks: MockChunk[];
 
     if (isError) {
       // Simulate a streaming error response
