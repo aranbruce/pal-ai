@@ -14,7 +14,7 @@ export const Message = ({ className, from, ...props }: MessageProps) => (
       "group flex w-full items-end justify-end gap-2 py-4",
       from === "user"
         ? "is-user"
-        : "is-assistant align-stretch flex-row-reverse justify-end",
+        : "is-assistant align-start flex-row-reverse justify-end",
       className,
     )}
     {...props}
@@ -22,7 +22,7 @@ export const Message = ({ className, from, ...props }: MessageProps) => (
 );
 
 const messageContentVariants = cva(
-  "is-user:dark flex flex-col gap-2 overflow-hidden rounded-lg ",
+  "is-user:dark flex flex-col gap-2 overflow-hidden rounded-lg group-[.is-assistant]:items-start group-[.is-user]:items-end",
   {
     variants: {
       variant: {

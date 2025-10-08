@@ -9,7 +9,14 @@ import { cn } from "@/lib/utils";
 import { ChevronDownIcon, LightBulbIcon } from "@heroicons/react/16/solid";
 import { useControllableState } from "@radix-ui/react-use-controllable-state";
 import type { ComponentProps } from "react";
-import { createContext, memo, useContext, useEffect, useState } from "react";
+import {
+  createContext,
+  memo,
+  useContext,
+  useEffect,
+  useRef,
+  useState,
+} from "react";
 import { Response } from "./response";
 
 type ReasoningContextValue = {
@@ -47,7 +54,7 @@ export const Reasoning = memo(
     className,
     isStreaming = false,
     open,
-    defaultOpen = true,
+    defaultOpen = false,
     onOpenChange,
     duration: durationProp,
     children,
@@ -64,20 +71,38 @@ export const Reasoning = memo(
     });
 
     const [hasAutoClosed, setHasAutoClosed] = useState(false);
-    const [startTime, setStartTime] = useState<number | null>(null);
+    const startTimeRef = useRef<number | null>(null);
+    const intervalRef = useRef<NodeJS.Timeout | null>(null);
     const [hasContent, setHasContent] = useState(false);
 
-    // Track duration when streaming starts and ends
+    // Track duration when streaming starts and ends, and update live while streaming
     useEffect(() => {
       if (isStreaming) {
-        if (startTime === null) {
-          setStartTime(Date.now());
+        if (startTimeRef.current === null) {
+          startTimeRef.current = Date.now();
         }
-      } else if (startTime !== null) {
-        setDuration(Math.ceil((Date.now() - startTime) / MS_IN_S));
-        setStartTime(null);
+        intervalRef.current = setInterval(() => {
+          setDuration(
+            Math.ceil((Date.now() - startTimeRef.current!) / MS_IN_S),
+          );
+        }, 100);
+      } else {
+        if (intervalRef.current) {
+          clearInterval(intervalRef.current);
+          intervalRef.current = null;
+        }
+        if (startTimeRef.current !== null) {
+          setDuration(Math.ceil((Date.now() - startTimeRef.current) / MS_IN_S));
+          startTimeRef.current = null;
+        }
       }
-    }, [isStreaming, startTime, setDuration]);
+      return () => {
+        if (intervalRef.current) {
+          clearInterval(intervalRef.current);
+          intervalRef.current = null;
+        }
+      };
+    }, [isStreaming, setDuration]);
 
     // Auto-open when streaming starts, auto-close when streaming ends (once only)
     useEffect(() => {
@@ -123,7 +148,13 @@ export const Reasoning = memo(
 export type ReasoningTriggerProps = ComponentProps<typeof CollapsibleTrigger>;
 
 const getThinkingMessage = (isStreaming: boolean, duration?: number) => {
-  if (isStreaming || duration === 0) {
+  if (isStreaming) {
+    if (duration === undefined) {
+      return <p>Thinking...</p>;
+    }
+    return <p>Thinking for {duration}s</p>;
+  }
+  if (duration === 0) {
     return <p>Thinking...</p>;
   }
   if (duration === undefined) {
@@ -141,7 +172,7 @@ export const ReasoningTrigger = memo(
         className={cn(
           "text-muted-foreground flex w-full items-center gap-2 text-sm transition-colors",
           hasContent
-            ? "hover:text-foreground cursor-pointer"
+            ? "hover:text-muted-foreground/80 cursor-pointer"
             : "cursor-default",
           className,
         )}
