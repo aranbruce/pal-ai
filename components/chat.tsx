@@ -58,6 +58,7 @@ import { ArrowPathIcon, Square2StackIcon } from "@heroicons/react/16/solid";
 import { GlobeEuropeAfricaIcon, XCircleIcon } from "@heroicons/react/20/solid";
 import type { Experimental_GeneratedImage } from "ai";
 import { DefaultChatTransport, generateId } from "ai";
+import posthog from "posthog-js";
 import { Fragment, useEffect, useState } from "react";
 import { toast } from "sonner";
 
@@ -147,6 +148,7 @@ const ConversationDemo = ({ models, defaultModel }: ConversationDemoProps) => {
       return;
     }
 
+    const userId = posthog.get_distinct_id();
     sendMessage(
       {
         text: message.text || "Sent with attachments",
@@ -157,6 +159,7 @@ const ConversationDemo = ({ models, defaultModel }: ConversationDemoProps) => {
           model: model,
           traceId: traceId,
           webSearch: useWebSearch,
+          ...(userId && { userId }),
           data: userLocation
             ? {
                 location: {
@@ -174,6 +177,7 @@ const ConversationDemo = ({ models, defaultModel }: ConversationDemoProps) => {
   };
 
   const handleSuggestionClick = (suggestion: string) => {
+    const userId = posthog.get_distinct_id();
     sendMessage(
       { text: suggestion },
       {
@@ -181,6 +185,7 @@ const ConversationDemo = ({ models, defaultModel }: ConversationDemoProps) => {
           model: model,
           traceId: traceId,
           webSearch: useWebSearch,
+          ...(userId && { userId }),
           data: userLocation
             ? {
                 location: {
@@ -401,12 +406,15 @@ const ConversationDemo = ({ models, defaultModel }: ConversationDemoProps) => {
                                     .map((part) => part.text)
                                     .join("\n");
 
+                                  const userId = posthog.get_distinct_id();
                                   sendMessage(
                                     { text: textContent },
                                     {
                                       body: {
                                         model: model,
+                                        traceId: traceId,
                                         webSearch: useWebSearch,
+                                        ...(userId && { userId }),
                                       },
                                     },
                                   );

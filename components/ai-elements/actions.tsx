@@ -77,6 +77,7 @@ export const FeedbackActions = ({ messageId }: FeedbackActionsProps) => {
   const [feedback, setFeedback] = useState<"positive" | "negative" | null>(
     null,
   );
+  const userId = posthog.get_distinct_id();
 
   const handleFeedback = (type: "positive" | "negative") => {
     if (feedback === type) {
@@ -85,12 +86,14 @@ export const FeedbackActions = ({ messageId }: FeedbackActionsProps) => {
       posthog.capture("message_feedback_removed", {
         messageId,
         feedbackType: type,
+        distinctId: userId,
       });
     } else {
       setFeedback(type);
       posthog.capture("message_feedback", {
         messageId,
         feedbackType: type,
+        distinctId: userId,
       });
     }
   };

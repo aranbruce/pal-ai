@@ -3,7 +3,6 @@
 This chatbkt example shows how to use the [Vercel AI SDK](https://sdk.vercel.ai/docs) with [Next.js](https://nextjs.org/) and [OpenAI](https://openai.com) to use functioms
 and react server components to create a chat bot.
 
-
 ## How to use
 
 To run the example locally you need to:

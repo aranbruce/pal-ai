@@ -41,12 +41,14 @@ export async function POST(request: Request) {
       model,
       traceId, // Add this for client-provided trace ID
       webSearch,
+      userId,
       data,
     }: {
       messages: UIMessage[];
       model?: string;
       traceId?: string; // Add this type
       webSearch?: boolean;
+      userId?: string;
       data?: {
         location?: { coordinates?: { latitude: number; longitude: number } };
       };
@@ -59,6 +61,7 @@ export async function POST(request: Request) {
 
     const actualModel = withTracing(gateway(selectedModel), phClient, {
       posthogTraceId: traceId || crypto.randomUUID(),
+      ...(userId && { posthogDistinctId: userId }),
       posthogProperties: {
         conversationId: traceId || "unknown",
         paid: false,
