@@ -1,6 +1,10 @@
 "use client";
 
-import { Action, Actions } from "@/components/ai-elements/actions";
+import {
+  Action,
+  Actions,
+  FeedbackActions,
+} from "@/components/ai-elements/actions";
 import { ChatImage } from "@/components/ai-elements/chat-image";
 import {
   Conversation,
@@ -50,14 +54,10 @@ import { DEFAULT_SUGGESTIONS } from "@/lib/chat-constants";
 import type { ConversationDemoProps, UserLocation } from "@/lib/chat-types";
 import { extractSourcesFromMessage, isToolUIPart } from "@/lib/chat-utils";
 import { useChat } from "@ai-sdk/react";
-import { Square2StackIcon } from "@heroicons/react/16/solid";
-import {
-  ArrowPathIcon,
-  GlobeEuropeAfricaIcon,
-  XCircleIcon,
-} from "@heroicons/react/20/solid";
+import { ArrowPathIcon, Square2StackIcon } from "@heroicons/react/16/solid";
+import { GlobeEuropeAfricaIcon, XCircleIcon } from "@heroicons/react/20/solid";
 import type { Experimental_GeneratedImage } from "ai";
-import { DefaultChatTransport } from "ai";
+import { DefaultChatTransport, generateId } from "ai";
 import { Fragment, useEffect, useState } from "react";
 import { toast } from "sonner";
 
@@ -68,6 +68,7 @@ const ConversationDemo = ({ models, defaultModel }: ConversationDemoProps) => {
   );
   const [userLocation, setUserLocation] = useState<UserLocation | null>(null);
   const [useWebSearch, setUseWebSearch] = useState<boolean>(false);
+  const [traceId] = useState<string>(() => generateId()); // Generate once per conversation
 
   // Request user's location on component mount
   useEffect(() => {
@@ -154,6 +155,7 @@ const ConversationDemo = ({ models, defaultModel }: ConversationDemoProps) => {
       {
         body: {
           model: model,
+          traceId: traceId,
           webSearch: useWebSearch,
           data: userLocation
             ? {
@@ -177,6 +179,7 @@ const ConversationDemo = ({ models, defaultModel }: ConversationDemoProps) => {
       {
         body: {
           model: model,
+          traceId: traceId,
           webSearch: useWebSearch,
           data: userLocation
             ? {
@@ -362,6 +365,7 @@ const ConversationDemo = ({ models, defaultModel }: ConversationDemoProps) => {
                       (messageIndex !== messages.length - 1 ||
                         status !== "streaming") && (
                         <Actions>
+                          <FeedbackActions messageId={message.id} />
                           <Action
                             onClick={() => {
                               const textContent = message.parts

@@ -4,6 +4,9 @@ import { getLocationFromCoordinates } from "@/app/actions/get-location-from-coor
 import { getWeatherForecast } from "@/app/actions/get-weather-forecast";
 import { getWebResults } from "@/app/actions/get-web-results";
 import { getWebpageContents } from "@/app/actions/get-webpage-contents";
+import { createGateway } from "@ai-sdk/gateway";
+import { withTracing } from "@posthog/ai";
+
 import {
   consumeStream,
   convertToModelMessages,
@@ -13,7 +16,18 @@ import {
   tool,
   type UIMessage,
 } from "ai";
+import { PostHog } from "posthog-node";
 import { z } from "zod";
+
+const gateway = createGateway({
+  apiKey: process.env.AI_GATEWAY_API_KEY,
+  baseURL: "https://ai-gateway.vercel.sh/v1/ai",
+});
+
+const phClient = new PostHog(
+  "phc_7DDJRJb09qbR0TXIqI5HcU13J2eMx4rEB1ZknovWyDI",
+  { host: "https://eu.i.posthog.com" },
+);
 
 function getTodaysDate() {
   const today = new Date();
@@ -25,11 +39,13 @@ export async function POST(request: Request) {
     const {
       messages,
       model,
+      traceId, // Add this for client-provided trace ID
       webSearch,
       data,
     }: {
       messages: UIMessage[];
       model?: string;
+      traceId?: string; // Add this type
       webSearch?: boolean;
       data?: {
         location?: { coordinates?: { latitude: number; longitude: number } };
@@ -39,10 +55,19 @@ export async function POST(request: Request) {
     const location = data?.location?.coordinates;
     const todaysDate = getTodaysDate();
     const selectedModel = model || "openai/gpt-5"; // Use the model from request or default to gpt-5
+    console.log("traceId: ", traceId);
+
+    const actualModel = withTracing(gateway(selectedModel), phClient, {
+      posthogTraceId: traceId || crypto.randomUUID(),
+      posthogProperties: {
+        conversationId: traceId || "unknown",
+        paid: false,
+      },
+      posthogPrivacyMode: false,
+    });
 
     const result = streamText({
-      model: selectedModel,
-      // model: "deepseek/deepseek-r1", // <-- Ensure correct model string
+      model: actualModel,
       messages: convertToModelMessages(messages),
       temperature: 0.2,
       maxRetries: 4,

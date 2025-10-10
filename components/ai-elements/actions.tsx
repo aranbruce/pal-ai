@@ -8,7 +8,10 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
+import { HandThumbDownIcon, HandThumbUpIcon } from "@heroicons/react/16/solid";
+import { usePostHog } from "posthog-js/react";
 import type { ComponentProps } from "react";
+import { useState } from "react";
 
 export type ActionsProps = ComponentProps<"div">;
 
@@ -63,4 +66,57 @@ export const Action = ({
   }
 
   return button;
+};
+
+export type FeedbackActionsProps = {
+  messageId: string;
+};
+
+export const FeedbackActions = ({ messageId }: FeedbackActionsProps) => {
+  const posthog = usePostHog();
+  const [feedback, setFeedback] = useState<"positive" | "negative" | null>(
+    null,
+  );
+
+  const handleFeedback = (type: "positive" | "negative") => {
+    if (feedback === type) {
+      // If clicking the same button again, remove feedback
+      setFeedback(null);
+      posthog.capture("message_feedback_removed", {
+        messageId,
+        feedbackType: type,
+      });
+    } else {
+      setFeedback(type);
+      posthog.capture("message_feedback", {
+        messageId,
+        feedbackType: type,
+      });
+    }
+  };
+
+  return (
+    <>
+      <Action
+        onClick={() => handleFeedback("positive")}
+        label="Thumbs up"
+        tooltip="Good response"
+        className={cn(
+          feedback === "positive" && "text-green-600 dark:text-green-400",
+        )}
+      >
+        <HandThumbUpIcon />
+      </Action>
+      <Action
+        onClick={() => handleFeedback("negative")}
+        label="Thumbs down"
+        tooltip="Poor response"
+        className={cn(
+          feedback === "negative" && "text-red-600 dark:text-red-400",
+        )}
+      >
+        <HandThumbDownIcon />
+      </Action>
+    </>
+  );
 };
