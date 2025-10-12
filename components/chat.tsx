@@ -499,8 +499,11 @@ function ConversationDemo({ models, defaultModel }: ConversationDemoProps) {
                             tooltip={
                               status === "streaming"
                                 ? "Stop current response and regenerate"
-                                : "Regenerate response"
+                                : status === "submitted"
+                                  ? "Please wait for response to complete"
+                                  : "Regenerate response"
                             }
+                            disabled={status === "submitted"}
                           >
                             <ArrowPathIcon />
                           </Action>
