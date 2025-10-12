@@ -244,27 +244,6 @@ function ConversationDemo({ models, defaultModel }: ConversationDemoProps) {
     },
     [messages, setMessages, sendMessageWithBody],
   );
-
-  const handleRegenerate = useCallback(
-    (messageIndex: number): void => {
-      // If streaming, stop the current stream first
-      if (status === "streaming") {
-        stop();
-
-        // Use a more reliable approach - find the user message immediately
-        // before the stream state changes
-        const currentMessages = [...messages]; // Capture current state
-        setTimeout(() => {
-          performRegenerateWithMessages(messageIndex, currentMessages);
-        }, 100);
-        return;
-      }
-
-      performRegenerate(messageIndex);
-    },
-    [status, stop, performRegenerate],
-  );
-
   const performRegenerateWithMessages = useCallback(
     (messageIndex: number, messagesSnapshot: typeof messages): void => {
       // Find the user message that precedes the assistant message at messageIndex
@@ -308,6 +287,26 @@ function ConversationDemo({ models, defaultModel }: ConversationDemoProps) {
       });
     },
     [setMessages, sendMessageWithBody],
+  );
+
+  const handleRegenerate = useCallback(
+    (messageIndex: number): void => {
+      // If streaming, stop the current stream first
+      if (status === "streaming") {
+        stop();
+
+        // Use a more reliable approach - find the user message immediately
+        // before the stream state changes
+        const currentMessages = [...messages]; // Capture current state
+        setTimeout(() => {
+          performRegenerateWithMessages(messageIndex, currentMessages);
+        }, 100);
+        return;
+      }
+
+      performRegenerate(messageIndex);
+    },
+    [status, stop, performRegenerate, messages, performRegenerateWithMessages],
   );
 
   return (
