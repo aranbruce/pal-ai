@@ -21,12 +21,14 @@ import { CodeBlock } from "./code-block";
 
 export type ToolProps = ComponentProps<typeof Collapsible>;
 
-export const Tool = ({ className, ...props }: ToolProps) => (
-  <Collapsible
-    className={cn("not-prose mb-4 max-w-full", className)}
-    {...props}
-  />
-);
+export function Tool({ className, ...props }: ToolProps) {
+  return (
+    <Collapsible
+      className={cn("not-prose mb-4 max-w-full", className)}
+      {...props}
+    />
+  );
+}
 
 // Utility function to transform tool names from snake_case to sentence case
 const formatToolName = (toolName: string): string => {
@@ -73,14 +75,14 @@ const getStatusBadge = (status: ToolUIPart["state"]) => {
   );
 };
 
-export const ToolHeader = ({
+export function ToolHeader({
   className,
   title,
   type,
   state,
   icon: Icon,
   ...props
-}: ToolHeaderProps) => {
+}: ToolHeaderProps) {
   // Extract tool name from type (e.g., "tool-call-search_web" -> "search_web")
   const toolName = type.split("-").slice(1).join("-");
   const displayName = title ?? formatToolName(toolName);
@@ -102,49 +104,53 @@ export const ToolHeader = ({
       <ChevronDownIcon className="text-muted-foreground size-4 transition-transform group-data-[state=open]:rotate-180" />
     </CollapsibleTrigger>
   );
-};
+}
 
 export type ToolContentProps = ComponentProps<typeof CollapsibleContent>;
 
-export const ToolContent = ({ className, ...props }: ToolContentProps) => (
-  <CollapsibleContent
-    className={cn(
-      "data-[state=closed]:fade-out-0 data-[state=closed]:slide-out-to-top-2 data-[state=open]:slide-in-from-top-2 text-popover-foreground data-[state=closed]:animate-out data-[state=open]:animate-in outline-none",
-      className,
-    )}
-    {...props}
-  />
-);
+export function ToolContent({ className, ...props }: ToolContentProps) {
+  return (
+    <CollapsibleContent
+      className={cn(
+        "data-[state=closed]:fade-out-0 data-[state=closed]:slide-out-to-top-2 data-[state=open]:slide-in-from-top-2 text-popover-foreground data-[state=closed]:animate-out data-[state=open]:animate-in outline-none",
+        className,
+      )}
+      {...props}
+    />
+  );
+}
 
 export type ToolInputProps = ComponentProps<"div"> & {
   input: ToolUIPart["input"];
 };
 
-export const ToolInput = ({ className, input, ...props }: ToolInputProps) => (
-  <div
-    className={cn("space-y-2 overflow-hidden p-4 pl-6", className)}
-    {...props}
-  >
-    <h4 className="text-muted-foreground text-xs font-medium tracking-wide uppercase">
-      Parameters
-    </h4>
-    <div className="bg-muted/50 rounded-md">
-      <CodeBlock code={JSON.stringify(input, null, 2)} language="json" />
+export function ToolInput({ className, input, ...props }: ToolInputProps) {
+  return (
+    <div
+      className={cn("space-y-2 overflow-hidden p-4 pl-6", className)}
+      {...props}
+    >
+      <h4 className="text-muted-foreground text-xs font-medium tracking-wide uppercase">
+        Parameters
+      </h4>
+      <div className="bg-muted/50 rounded-md">
+        <CodeBlock code={JSON.stringify(input, null, 2)} language="json" />
+      </div>
     </div>
-  </div>
-);
+  );
+}
 
 export type ToolOutputProps = ComponentProps<"div"> & {
   output: ToolUIPart["output"];
   errorText: ToolUIPart["errorText"];
 };
 
-export const ToolOutput = ({
+export function ToolOutput({
   className,
   output,
   errorText,
   ...props
-}: ToolOutputProps) => {
+}: ToolOutputProps) {
   if (!(output || errorText)) {
     return null;
   }
@@ -177,4 +183,4 @@ export const ToolOutput = ({
       </div>
     </div>
   );
-};
+}

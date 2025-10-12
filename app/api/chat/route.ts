@@ -4,6 +4,7 @@ import { getLocationFromCoordinates } from "@/app/actions/get-location-from-coor
 import { getWeatherForecast } from "@/app/actions/get-weather-forecast";
 import { getWebResults } from "@/app/actions/get-web-results";
 import { getWebpageContents } from "@/app/actions/get-webpage-contents";
+import { CHAT_CONFIG } from "@/lib/chat-constants";
 import { createGateway } from "@ai-sdk/gateway";
 import { withTracing } from "@posthog/ai";
 
@@ -72,12 +73,12 @@ export async function POST(request: Request) {
     const result = streamText({
       model: actualModel,
       messages: convertToModelMessages(messages),
-      temperature: 0.2,
-      maxRetries: 4,
-      stopWhen: stepCountIs(20), // Stop after 20 steps
+      temperature: CHAT_CONFIG.TEMPERATURE,
+      maxRetries: CHAT_CONFIG.MAX_RETRIES,
+      stopWhen: stepCountIs(CHAT_CONFIG.MAX_STEPS),
       abortSignal: request.signal, // Forward the abort signal
       experimental_transform: smoothStream({
-        delayInMs: 20, // optional: defaults to 10ms
+        delayInMs: CHAT_CONFIG.STREAM_DELAY_MS,
         chunking: "word", // optional: defaults to 'word'
       }),
       prepareStep: async ({ stepNumber }) => {

@@ -33,3 +33,14 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# cursor
+.cursor
+.cursorrules
+.cursorrules.md
+.cursorrules.yaml
+.cursorrules.yml
+.cursorrules.json
+.cursorrules.jsonc
+.cursorrules.json5
+.cursorrules.jsonp

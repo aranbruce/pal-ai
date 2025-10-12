@@ -7,20 +7,22 @@ export type ImageProps = Experimental_GeneratedImage & {
   alt?: string;
 };
 
-export const Image = ({
+export function Image({
   base64,
   mediaType,
   alt,
   className,
-}: Omit<ImageProps, "uint8Array">) => (
-  <NextImage
-    alt={alt || ""}
-    className={cn(
-      "h-auto max-w-full overflow-hidden rounded-lg border",
-      className,
-    )}
-    src={`data:${mediaType};base64,${base64}`}
-    width={500}
-    height={500}
-  />
-);
+}: Omit<ImageProps, "uint8Array">) {
+  return (
+    <NextImage
+      alt={alt || ""}
+      className={cn(
+        "h-auto max-w-full overflow-hidden rounded-lg border",
+        className,
+      )}
+      src={`data:${mediaType};base64,${base64}`}
+      width={500}
+      height={500}
+    />
+  );
+}
