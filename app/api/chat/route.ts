@@ -1,3 +1,4 @@
+import { getCoordinatesFromLocation } from "@/app/actions/get-coordinates-from-location";
 import { getCurrentWeather } from "@/app/actions/get-current-weather";
 import { getLocationFromCoordinates } from "@/app/actions/get-location-from-coordinates";
 import { getWeatherForecast } from "@/app/actions/get-weather-forecast";
