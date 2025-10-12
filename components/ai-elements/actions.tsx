@@ -15,18 +15,20 @@ import { useState } from "react";
 
 export type ActionsProps = ComponentProps<"div">;
 
-export const Actions = ({ className, children, ...props }: ActionsProps) => (
-  <div className={cn("flex items-center gap-0", className)} {...props}>
-    {children}
-  </div>
-);
+export function Actions({ className, children, ...props }: ActionsProps) {
+  return (
+    <div className={cn("flex items-center gap-0", className)} {...props}>
+      {children}
+    </div>
+  );
+}
 
 export type ActionProps = ComponentProps<typeof Button> & {
   tooltip?: string;
   label?: string;
 };
 
-export const Action = ({
+export function Action({
   tooltip,
   children,
   label,
@@ -34,7 +36,7 @@ export const Action = ({
   variant = "ghost",
   size = "sm",
   ...props
-}: ActionProps) => {
+}: ActionProps) {
   const button = (
     <Button
       className={cn(
@@ -48,7 +50,9 @@ export const Action = ({
       {...props}
     >
       {children}
-      <span className="sr-only">{label || tooltip}</span>
+      <span className="sr-only" aria-label={label || tooltip}>
+        {label || tooltip}
+      </span>
     </Button>
   );
 
@@ -66,13 +70,13 @@ export const Action = ({
   }
 
   return button;
-};
+}
 
 export type FeedbackActionsProps = {
   messageId: string;
 };
 
-export const FeedbackActions = ({ messageId }: FeedbackActionsProps) => {
+export function FeedbackActions({ messageId }: FeedbackActionsProps) {
   const posthog = usePostHog();
   const [feedback, setFeedback] = useState<"positive" | "negative" | null>(
     null,
@@ -104,6 +108,7 @@ export const FeedbackActions = ({ messageId }: FeedbackActionsProps) => {
         onClick={() => handleFeedback("positive")}
         label="Thumbs up"
         tooltip="Good response"
+        aria-label="Give positive feedback"
         className={cn(
           feedback === "positive" && "text-green-600 dark:text-green-400",
         )}
@@ -114,6 +119,7 @@ export const FeedbackActions = ({ messageId }: FeedbackActionsProps) => {
         onClick={() => handleFeedback("negative")}
         label="Thumbs down"
         tooltip="Poor response"
+        aria-label="Give negative feedback"
         className={cn(
           feedback === "negative" && "text-red-600 dark:text-red-400",
         )}
@@ -122,4 +128,4 @@ export const FeedbackActions = ({ messageId }: FeedbackActionsProps) => {
       </Action>
     </>
   );
-};
+}

@@ -1,5 +1,7 @@
 "use server";
 
+import { WebSearchRequestSchema } from "@/lib/schema";
+
 interface WebSearchRequest {
   query: string;
   country?: string;
@@ -20,14 +22,19 @@ interface WebSearchResult {
   extra?: string[];
 }
 
-export async function getWebResults({
-  query,
-  country,
-  freshness,
-  units,
-  count = 8,
-  offset,
-}: WebSearchRequest): Promise<WebSearchResult[] | { error: string }> {
+export async function getWebResults(
+  request: WebSearchRequest,
+): Promise<WebSearchResult[]> {
+  // Validate input using Zod schema
+  const validatedRequest = WebSearchRequestSchema.parse(request);
+  const {
+    query,
+    country,
+    freshness,
+    units,
+    count = 8,
+    offset,
+  } = validatedRequest;
   let freshnessParam = "";
 
   if (freshness) {
@@ -110,6 +117,8 @@ export async function getWebResults({
     return results;
   } catch (error) {
     console.error("Error:", error);
-    return { error: `Error occurred: ${error}` };
+    throw new Error(
+      `Failed to fetch web results: ${error instanceof Error ? error.message : "Unknown error"}`,
+    );
   }
 }

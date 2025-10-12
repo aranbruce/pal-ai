@@ -1,5 +1,6 @@
 "use server";
 
+import { WebpageContentsRequestSchema } from "@/lib/schema";
 import { tavily } from "@tavily/core";
 
 const tvly = tavily({ apiKey: process.env.TAVILY_API_KEY });
@@ -11,11 +12,11 @@ interface WebpageResult {
 
 export async function getWebpageContents(urls: string[]) {
   try {
-    if (!urls || urls.length === 0) {
-      throw new Error("Invalid URL - at least one URL is required");
-    }
+    // Validate input using Zod schema
+    const validatedRequest = WebpageContentsRequestSchema.parse({ urls });
+    const validatedUrls = validatedRequest.urls;
 
-    const response = await tvly.extract(urls);
+    const response = await tvly.extract(validatedUrls);
     const results = response.results;
 
     // Return only the serializable fields we need, avoiding circular references

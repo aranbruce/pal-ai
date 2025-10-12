@@ -50,7 +50,7 @@ import {
 import { Suggestion, Suggestions } from "@/components/ai-elements/suggestion";
 import { getProviderLogo } from "@/components/provider-logos";
 import { ToolRenderer } from "@/components/tool-renderer";
-import { DEFAULT_SUGGESTIONS } from "@/lib/chat-constants";
+import { DEFAULT_SUGGESTIONS, GEOLOCATION_CONFIG } from "@/lib/chat-constants";
 import type { ConversationDemoProps, UserLocation } from "@/lib/chat-types";
 import { extractSourcesFromMessage, isToolUIPart } from "@/lib/chat-utils";
 import { useChat } from "@ai-sdk/react";
@@ -63,10 +63,10 @@ import {
 import type { Experimental_GeneratedImage } from "ai";
 import { DefaultChatTransport, generateId } from "ai";
 import posthog from "posthog-js";
-import { Fragment, useEffect, useState } from "react";
+import { Fragment, useCallback, useEffect, useState } from "react";
 import { toast } from "sonner";
 
-const ConversationDemo = ({ models, defaultModel }: ConversationDemoProps) => {
+function ConversationDemo({ models, defaultModel }: ConversationDemoProps) {
   const [text, setText] = useState<string>("");
   const [model, setModel] = useState<string>(
     defaultModel || models[0]?.id || "",
@@ -89,9 +89,9 @@ const ConversationDemo = ({ models, defaultModel }: ConversationDemoProps) => {
           // Silently fail - location is optional
         },
         {
-          enableHighAccuracy: false,
-          timeout: 5000,
-          maximumAge: 300000, // Cache for 5 minutes
+          enableHighAccuracy: GEOLOCATION_CONFIG.ENABLE_HIGH_ACCURACY,
+          timeout: GEOLOCATION_CONFIG.TIMEOUT,
+          maximumAge: GEOLOCATION_CONFIG.MAXIMUM_AGE,
         },
       );
     }
@@ -130,134 +130,185 @@ const ConversationDemo = ({ models, defaultModel }: ConversationDemoProps) => {
     },
   });
 
-  const handleStop = () => {
+  const handleStop = useCallback(() => {
     stop();
     toast.info("Response stopped", {
       description: "The AI response has been stopped.",
       position: "top-center",
       dismissible: true,
     });
-  };
+  }, [stop]);
 
-  const handleSubmit = (message: PromptInputMessage) => {
-    // Prevent submission while streaming
-    if (status === "streaming") {
-      return;
-    }
+  // Helper function to send messages with common body structure
+  const sendMessageWithBody = useCallback(
+    (
+      message: { text: string; files?: PromptInputMessage["files"] },
+      additionalBody?: Record<string, unknown>,
+    ): void => {
+      const userId = posthog.get_distinct_id();
+      sendMessage(message, {
+        body: {
+          model: model,
+          traceId: traceId,
+          webSearch: useWebSearch,
+          ...(userId && { userId }),
+          data: userLocation
+            ? {
+                location: {
+                  coordinates: {
+                    latitude: userLocation.latitude,
+                    longitude: userLocation.longitude,
+                  },
+                },
+              }
+            : undefined,
+          ...additionalBody,
+        },
+      });
+    },
+    [model, traceId, useWebSearch, userLocation, sendMessage],
+  );
 
-    const hasText = Boolean(message.text);
-    const hasAttachments = Boolean(message.files?.length);
+  const handleSubmit = useCallback(
+    (message: PromptInputMessage): void => {
+      // Prevent submission while streaming
+      if (status === "streaming") {
+        return;
+      }
 
-    if (!(hasText || hasAttachments)) {
-      return;
-    }
+      const hasText = Boolean(message.text);
+      const hasAttachments = Boolean(message.files?.length);
 
-    const userId = posthog.get_distinct_id();
-    sendMessage(
-      {
+      if (!(hasText || hasAttachments)) {
+        return;
+      }
+
+      sendMessageWithBody({
         text: message.text || "Sent with attachments",
         files: message.files,
-      },
-      {
-        body: {
-          model: model,
-          traceId: traceId,
-          webSearch: useWebSearch,
-          ...(userId && { userId }),
-          data: userLocation
-            ? {
-                location: {
-                  coordinates: {
-                    latitude: userLocation.latitude,
-                    longitude: userLocation.longitude,
-                  },
-                },
-              }
-            : undefined,
-        },
-      },
-    );
-    setText("");
-  };
+      });
+      setText("");
+    },
+    [status, sendMessageWithBody],
+  );
 
-  const handleSuggestionClick = (suggestion: string) => {
-    const userId = posthog.get_distinct_id();
-    sendMessage(
-      { text: suggestion },
-      {
-        body: {
-          model: model,
-          traceId: traceId,
-          webSearch: useWebSearch,
-          ...(userId && { userId }),
-          data: userLocation
-            ? {
-                location: {
-                  coordinates: {
-                    latitude: userLocation.latitude,
-                    longitude: userLocation.longitude,
-                  },
-                },
-              }
-            : undefined,
-        },
-      },
-    );
-  };
+  const handleSuggestionClick = useCallback(
+    (suggestion: string): void => {
+      sendMessageWithBody({ text: suggestion });
+    },
+    [sendMessageWithBody],
+  );
 
-  const handleRegenerate = (messageIndex: number) => {
-    // Validate that there's a previous user message
-    if (messageIndex <= 0) {
-      console.error("No previous user message to regenerate from");
-      return;
-    }
+  const performRegenerate = useCallback(
+    (messageIndex: number): void => {
+      // Find the user message that precedes the assistant message at messageIndex
+      // We need to look backwards from the current message to find the user message
+      let userMessageIndex = -1;
 
-    const previousUserMessage = messages[messageIndex - 1];
-    if (!previousUserMessage || previousUserMessage.role !== "user") {
-      console.error("Previous message is not a user message");
-      return;
-    }
+      for (let i = messageIndex - 1; i >= 0; i--) {
+        if (messages[i]?.role === "user") {
+          userMessageIndex = i;
+          break;
+        }
+      }
 
-    const previousUserMessageParts = previousUserMessage.parts;
-    const textContent = previousUserMessageParts
-      .filter((part) => part.type === "text")
-      .map((part) => part.text)
-      .join("\n");
+      if (userMessageIndex === -1) {
+        console.error("No previous user message found to regenerate from");
+        return;
+      }
 
-    const filesContent = previousUserMessageParts.filter(
-      (part) => part.type === "file",
-    );
+      const userMessage = messages[userMessageIndex];
+      if (!userMessage) {
+        console.error("User message not found");
+        return;
+      }
 
-    // Remove all following messages
-    const newMessages = messages.slice(0, messageIndex - 1);
-    setMessages(newMessages);
+      const userMessageParts = userMessage.parts;
+      const textContent = userMessageParts
+        .filter((part) => part.type === "text")
+        .map((part) => part.text)
+        .join("\n");
 
-    const userId = posthog.get_distinct_id();
-    sendMessage(
-      {
+      const filesContent = userMessageParts.filter(
+        (part) => part.type === "file",
+      );
+
+      // Remove all messages from the user message onwards (including the user message itself)
+      const newMessages = messages.slice(0, userMessageIndex);
+      setMessages(newMessages);
+
+      sendMessageWithBody({
         text: textContent,
         files: filesContent,
-      },
-      {
-        body: {
-          model: model,
-          traceId: traceId,
-          webSearch: useWebSearch,
-          ...(userId && { userId }),
-          ...(userLocation && {
-            data: {
-              location: {
-                coordinates: {
-                  latitude: userLocation?.latitude,
-                  longitude: userLocation?.longitude,
-                },
-              },
-            },
-          }),
-        },
-      },
-    );
-  };
+      });
+    },
+    [messages, setMessages, sendMessageWithBody],
+  );
+
+  const handleRegenerate = useCallback(
+    (messageIndex: number): void => {
+      // If streaming, stop the current stream first
+      if (status === "streaming") {
+        stop();
+
+        // Use a more reliable approach - find the user message immediately
+        // before the stream state changes
+        const currentMessages = [...messages]; // Capture current state
+        setTimeout(() => {
+          performRegenerateWithMessages(messageIndex, currentMessages);
+        }, 100);
+        return;
+      }
+
+      performRegenerate(messageIndex);
+    },
+    [status, stop, performRegenerate],
+  );
+
+  const performRegenerateWithMessages = useCallback(
+    (messageIndex: number, messagesSnapshot: typeof messages): void => {
+      // Find the user message that precedes the assistant message at messageIndex
+      let userMessageIndex = -1;
+
+      for (let i = messageIndex - 1; i >= 0; i--) {
+        if (messagesSnapshot[i]?.role === "user") {
+          userMessageIndex = i;
+          break;
+        }
+      }
+
+      if (userMessageIndex === -1) {
+        console.error("No previous user message found to regenerate from");
+        return;
+      }
+
+      const userMessage = messagesSnapshot[userMessageIndex];
+      if (!userMessage) {
+        console.error("User message not found");
+        return;
+      }
+
+      const userMessageParts = userMessage.parts;
+      const textContent = userMessageParts
+        .filter((part) => part.type === "text")
+        .map((part) => part.text)
+        .join("\n");
+
+      const filesContent = userMessageParts.filter(
+        (part) => part.type === "file",
+      );
+
+      // Remove all messages from the user message onwards (including the user message itself)
+      const newMessages = messagesSnapshot.slice(0, userMessageIndex);
+      setMessages(newMessages);
+
+      sendMessageWithBody({
+        text: textContent,
+        files: filesContent,
+      });
+    },
+    [setMessages, sendMessageWithBody],
+  );
 
   return (
     <div className="relative size-full pb-2 md:pb-4">
@@ -445,7 +496,11 @@ const ConversationDemo = ({ models, defaultModel }: ConversationDemoProps) => {
                           <Action
                             onClick={() => handleRegenerate(messageIndex)}
                             label="Regenerate"
-                            tooltip="Regenerate response"
+                            tooltip={
+                              status === "streaming"
+                                ? "Stop current response and regenerate"
+                                : "Regenerate response"
+                            }
                           >
                             <ArrowPathIcon />
                           </Action>
@@ -549,6 +604,6 @@ const ConversationDemo = ({ models, defaultModel }: ConversationDemoProps) => {
       </div>
     </div>
   );
-};
+}
 
 export default ConversationDemo;

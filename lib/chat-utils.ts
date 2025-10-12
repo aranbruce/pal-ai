@@ -6,21 +6,22 @@ import {
 } from "@heroicons/react/16/solid";
 import type { ToolUIPart } from "ai";
 
-// Helper function to check if a part is a ToolUIPart
+// Helper function to check if a part is a ToolUIPart with improved type narrowing
 export function isToolUIPart(part: unknown): part is ToolUIPart {
   return (
     typeof part === "object" &&
     part !== null &&
     "type" in part &&
     typeof part.type === "string" &&
-    part.type.startsWith("tool-")
+    part.type.startsWith("tool-") &&
+    "output" in part
   );
 }
 
 // Helper function to get the icon for a tool based on its type
 export function getToolIcon(
   toolType: string,
-): React.ComponentType<{ className?: string }> | undefined {
+): React.ComponentType<{ className?: string }> {
   if (toolType.includes("get_current_weather")) {
     return CloudIcon;
   }
@@ -33,7 +34,8 @@ export function getToolIcon(
   if (toolType.includes("get_webpage_contents")) {
     return DevicePhoneMobileIcon;
   }
-  return undefined; // Will use default WrenchIcon
+  // Return a default icon component instead of undefined
+  return () => null; // Default fallback component
 }
 
 // Helper function to extract sources from web search results
