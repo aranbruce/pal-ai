@@ -54,8 +54,12 @@ import { DEFAULT_SUGGESTIONS } from "@/lib/chat-constants";
 import type { ConversationDemoProps, UserLocation } from "@/lib/chat-types";
 import { extractSourcesFromMessage, isToolUIPart } from "@/lib/chat-utils";
 import { useChat } from "@ai-sdk/react";
-import { ArrowPathIcon, Square2StackIcon } from "@heroicons/react/16/solid";
-import { GlobeEuropeAfricaIcon, XCircleIcon } from "@heroicons/react/20/solid";
+import {
+  ArrowPathIcon,
+  GlobeEuropeAfricaIcon,
+  Square2StackIcon,
+  XCircleIcon,
+} from "@heroicons/react/16/solid";
 import type { Experimental_GeneratedImage } from "ai";
 import { DefaultChatTransport, generateId } from "ai";
 import posthog from "posthog-js";
@@ -196,6 +200,60 @@ const ConversationDemo = ({ models, defaultModel }: ConversationDemoProps) => {
                 },
               }
             : undefined,
+        },
+      },
+    );
+  };
+
+  const handleRegenerate = (messageIndex: number) => {
+    // Validate that there's a previous user message
+    if (messageIndex <= 0) {
+      console.error("No previous user message to regenerate from");
+      return;
+    }
+
+    const previousUserMessage = messages[messageIndex - 1];
+    if (!previousUserMessage || previousUserMessage.role !== "user") {
+      console.error("Previous message is not a user message");
+      return;
+    }
+
+    const previousUserMessageParts = previousUserMessage.parts;
+    const textContent = previousUserMessageParts
+      .filter((part) => part.type === "text")
+      .map((part) => part.text)
+      .join("\n");
+
+    const filesContent = previousUserMessageParts.filter(
+      (part) => part.type === "file",
+    );
+
+    // Remove all following messages
+    const newMessages = messages.slice(0, messageIndex - 1);
+    setMessages(newMessages);
+
+    const userId = posthog.get_distinct_id();
+    sendMessage(
+      {
+        text: textContent,
+        files: filesContent,
+      },
+      {
+        body: {
+          model: model,
+          traceId: traceId,
+          webSearch: useWebSearch,
+          ...(userId && { userId }),
+          ...(userLocation && {
+            data: {
+              location: {
+                coordinates: {
+                  latitude: userLocation?.latitude,
+                  longitude: userLocation?.longitude,
+                },
+              },
+            },
+          }),
         },
       },
     );
@@ -384,48 +442,13 @@ const ConversationDemo = ({ models, defaultModel }: ConversationDemoProps) => {
                           >
                             <Square2StackIcon />
                           </Action>
-                          {messageIndex === messages.length - 1 && (
-                            <Action
-                              onClick={() => {
-                                // Find the last user message to regenerate
-                                const lastUserMessage = messages
-                                  .slice(0, messageIndex)
-                                  .reverse()
-                                  .find((m) => m.role === "user");
-
-                                if (lastUserMessage) {
-                                  // Remove both the last assistant message and last user message
-                                  const messagesWithoutLastTwo = messages.slice(
-                                    0,
-                                    -2,
-                                  );
-                                  setMessages(messagesWithoutLastTwo);
-
-                                  const textContent = lastUserMessage.parts
-                                    .filter((part) => part.type === "text")
-                                    .map((part) => part.text)
-                                    .join("\n");
-
-                                  const userId = posthog.get_distinct_id();
-                                  sendMessage(
-                                    { text: textContent },
-                                    {
-                                      body: {
-                                        model: model,
-                                        traceId: traceId,
-                                        webSearch: useWebSearch,
-                                        ...(userId && { userId }),
-                                      },
-                                    },
-                                  );
-                                }
-                              }}
-                              label="Regenerate"
-                              tooltip="Regenerate response"
-                            >
-                              <ArrowPathIcon />
-                            </Action>
-                          )}
+                          <Action
+                            onClick={() => handleRegenerate(messageIndex)}
+                            label="Regenerate"
+                            tooltip="Regenerate response"
+                          >
+                            <ArrowPathIcon />
+                          </Action>
                         </Actions>
                       )}
                   </Fragment>
