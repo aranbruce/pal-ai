@@ -14,7 +14,8 @@ export function isToolUIPart(part: unknown): part is ToolUIPart {
     "type" in part &&
     typeof part.type === "string" &&
     part.type.startsWith("tool-") &&
-    "output" in part
+    "state" in part &&
+    typeof part.state === "string"
   );
 }
 
