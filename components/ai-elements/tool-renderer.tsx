@@ -31,7 +31,7 @@ interface WeatherResult {
 interface ToolPart {
   type: string;
   state?: string;
-  output?: any;
+  output?: unknown;
 }
 
 interface ToolRendererProps {

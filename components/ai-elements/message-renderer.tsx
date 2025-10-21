@@ -18,7 +18,10 @@ interface MessagePart {
   url?: string;
   filename?: string;
   mediaType?: string;
-  image?: any;
+  image?: {
+    base64: string;
+    mediaType: string;
+  };
 }
 
 interface Message {
@@ -29,14 +32,12 @@ interface Message {
 
 interface MessageRendererProps {
   message: Message;
-  messageIndex: number;
   messages: Message[];
   status: string;
 }
 
 export function MessageRenderer({
   message,
-  messageIndex,
   messages,
   status,
 }: MessageRendererProps) {
@@ -44,7 +45,7 @@ export function MessageRenderer({
   const imageParts =
     message.role === "user"
       ? message.parts.filter(
-          (part: any) =>
+          (part: MessagePart) =>
             part.type === "file" && part.mediaType?.startsWith("image/"),
         )
       : [];

@@ -1,10 +1,14 @@
 import type { PromptInputMessage } from "@/components/ai-elements/prompt-input";
 import type { UserLocation } from "@/lib/chat-types";
+import type { FileUIPart } from "ai";
 import posthog from "posthog-js";
 
 interface MessagePart {
   type: string;
   text?: string;
+  url?: string;
+  filename?: string;
+  mediaType?: string;
 }
 
 interface Message {
@@ -12,7 +16,7 @@ interface Message {
   parts: MessagePart[];
 }
 
-interface MessagesArray extends Array<Message> {}
+type MessagesArray = Message[];
 
 export function createMessageBody(
   model: string,
@@ -73,13 +77,23 @@ export function findPreviousUserMessage(
 
 export function createRegenerateMessage(userMessage: Message): {
   text: string;
-  files?: any[];
+  files?: FileUIPart[];
 } {
   const textContent = extractTextFromMessage(userMessage);
   const filesContent = extractFilesFromMessage(userMessage);
 
+  // Convert MessagePart[] to FileUIPart[]
+  const fileUIParts: FileUIPart[] = filesContent
+    .filter((part) => part.type === "file" && part.url && part.mediaType)
+    .map((part) => ({
+      type: "file" as const,
+      url: part.url!,
+      mediaType: part.mediaType!,
+      name: part.filename || "file",
+    }));
+
   return {
-    text: textContent,
-    files: filesContent as any[],
+    text: textContent || "Sent with attachments",
+    files: fileUIParts.length > 0 ? fileUIParts : undefined,
   };
 }

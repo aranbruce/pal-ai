@@ -250,7 +250,6 @@ function ConversationDemo({ models, defaultModel }: ConversationDemoProps) {
                 <Fragment key={message.id}>
                   <MessageRenderer
                     message={message}
-                    messageIndex={messageIndex}
                     messages={messages}
                     status={status}
                   />
