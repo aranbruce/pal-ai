@@ -6,7 +6,7 @@ import {
   CollapsibleTrigger,
 } from "@/components/ui/collapsible";
 import { cn } from "@/lib/utils";
-import { BookOpenIcon, ChevronDownIcon } from "@heroicons/react/16/solid";
+import { BookOpenIcon, ChevronDownIcon } from "lucide-react";
 import type { ComponentProps } from "react";
 
 export type SourcesProps = ComponentProps<"div">;

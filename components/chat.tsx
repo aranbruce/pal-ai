@@ -5,15 +5,13 @@ import {
   Actions,
   FeedbackActions,
 } from "@/components/ai-elements/actions";
-import { ChatImage } from "@/components/ai-elements/chat-image";
 import {
   Conversation,
   ConversationContent,
   ConversationEmptyState,
   ConversationScrollButton,
 } from "@/components/ai-elements/conversation";
-import { Image } from "@/components/ai-elements/image";
-import { Message, MessageContent } from "@/components/ai-elements/message";
+import { MessageRenderer } from "@/components/ai-elements/message-renderer";
 import {
   PromptInput,
   PromptInputActionAddAttachments,
@@ -36,12 +34,6 @@ import {
   PromptInputTools,
 } from "@/components/ai-elements/prompt-input";
 import {
-  Reasoning,
-  ReasoningContent,
-  ReasoningTrigger,
-} from "@/components/ai-elements/reasoning";
-import { Response } from "@/components/ai-elements/response";
-import {
   Source,
   Sources,
   SourcesContent,
@@ -49,20 +41,19 @@ import {
 } from "@/components/ai-elements/sources";
 import { Suggestion, Suggestions } from "@/components/ai-elements/suggestion";
 import { getProviderLogo } from "@/components/provider-logos";
-import { ToolRenderer } from "@/components/tool-renderer";
 import { DEFAULT_SUGGESTIONS, GEOLOCATION_CONFIG } from "@/lib/chat-constants";
-import type { ConversationDemoProps, UserLocation } from "@/lib/chat-types";
-import { extractSourcesFromMessage, isToolUIPart } from "@/lib/chat-utils";
-import { useChat } from "@ai-sdk/react";
 import {
-  ArrowPathIcon,
-  GlobeEuropeAfricaIcon,
-  Square2StackIcon,
-  XCircleIcon,
-} from "@heroicons/react/16/solid";
-import type { Experimental_GeneratedImage } from "ai";
+  createMessageBody,
+  createRegenerateMessage,
+  extractTextFromMessage,
+  findPreviousUserMessage,
+  validateMessage,
+} from "@/lib/chat-helpers";
+import type { ConversationDemoProps, UserLocation } from "@/lib/chat-types";
+import { extractSourcesFromMessage } from "@/lib/chat-utils";
+import { useChat } from "@ai-sdk/react";
 import { DefaultChatTransport, generateId } from "ai";
-import posthog from "posthog-js";
+import { CopyIcon, GlobeIcon, RefreshCcwIcon, XCircleIcon } from "lucide-react";
 import { Fragment, useCallback, useEffect, useState } from "react";
 import { toast } from "sonner";
 
@@ -145,25 +136,14 @@ function ConversationDemo({ models, defaultModel }: ConversationDemoProps) {
       message: { text: string; files?: PromptInputMessage["files"] },
       additionalBody?: Record<string, unknown>,
     ): void => {
-      const userId = posthog.get_distinct_id();
       sendMessage(message, {
-        body: {
-          model: model,
-          traceId: traceId,
-          webSearch: useWebSearch,
-          ...(userId && { userId }),
-          data: userLocation
-            ? {
-                location: {
-                  coordinates: {
-                    latitude: userLocation.latitude,
-                    longitude: userLocation.longitude,
-                  },
-                },
-              }
-            : undefined,
-          ...additionalBody,
-        },
+        body: createMessageBody(
+          model,
+          traceId,
+          useWebSearch,
+          userLocation,
+          additionalBody,
+        ),
       });
     },
     [model, traceId, useWebSearch, userLocation, sendMessage],
@@ -176,10 +156,7 @@ function ConversationDemo({ models, defaultModel }: ConversationDemoProps) {
         return;
       }
 
-      const hasText = Boolean(message.text);
-      const hasAttachments = Boolean(message.files?.length);
-
-      if (!(hasText || hasAttachments)) {
+      if (!validateMessage(message)) {
         return;
       }
 
@@ -200,93 +177,33 @@ function ConversationDemo({ models, defaultModel }: ConversationDemoProps) {
   );
 
   const performRegenerate = useCallback(
-    (messageIndex: number): void => {
-      // Find the user message that precedes the assistant message at messageIndex
-      // We need to look backwards from the current message to find the user message
-      let userMessageIndex = -1;
-
-      for (let i = messageIndex - 1; i >= 0; i--) {
-        if (messages[i]?.role === "user") {
-          userMessageIndex = i;
-          break;
-        }
-      }
+    (messageIndex: number, messagesSnapshot?: typeof messages): void => {
+      const messagesToUse = messagesSnapshot || messages;
+      const userMessageIndex = findPreviousUserMessage(
+        messagesToUse,
+        messageIndex,
+      );
 
       if (userMessageIndex === -1) {
         console.error("No previous user message found to regenerate from");
         return;
       }
 
-      const userMessage = messages[userMessageIndex];
+      const userMessage = messagesToUse[userMessageIndex];
       if (!userMessage) {
         console.error("User message not found");
         return;
       }
 
-      const userMessageParts = userMessage.parts;
-      const textContent = userMessageParts
-        .filter((part) => part.type === "text")
-        .map((part) => part.text)
-        .join("\n");
-
-      const filesContent = userMessageParts.filter(
-        (part) => part.type === "file",
-      );
-
-      // Remove all messages from the user message onwards (including the user message itself)
-      const newMessages = messages.slice(0, userMessageIndex);
+      // Remove all messages from the user message onwards
+      const newMessages = messagesToUse.slice(0, userMessageIndex);
       setMessages(newMessages);
 
-      sendMessageWithBody({
-        text: textContent,
-        files: filesContent,
-      });
+      // Create regenerate message and send
+      const regenerateMessage = createRegenerateMessage(userMessage);
+      sendMessageWithBody(regenerateMessage);
     },
     [messages, setMessages, sendMessageWithBody],
-  );
-  const performRegenerateWithMessages = useCallback(
-    (messageIndex: number, messagesSnapshot: typeof messages): void => {
-      // Find the user message that precedes the assistant message at messageIndex
-      let userMessageIndex = -1;
-
-      for (let i = messageIndex - 1; i >= 0; i--) {
-        if (messagesSnapshot[i]?.role === "user") {
-          userMessageIndex = i;
-          break;
-        }
-      }
-
-      if (userMessageIndex === -1) {
-        console.error("No previous user message found to regenerate from");
-        return;
-      }
-
-      const userMessage = messagesSnapshot[userMessageIndex];
-      if (!userMessage) {
-        console.error("User message not found");
-        return;
-      }
-
-      const userMessageParts = userMessage.parts;
-      const textContent = userMessageParts
-        .filter((part) => part.type === "text")
-        .map((part) => part.text)
-        .join("\n");
-
-      const filesContent = userMessageParts.filter(
-        (part) => part.type === "file",
-      );
-
-      // Remove all messages from the user message onwards (including the user message itself)
-      const newMessages = messagesSnapshot.slice(0, userMessageIndex);
-      setMessages(newMessages);
-
-      sendMessageWithBody({
-        text: textContent,
-        files: filesContent,
-      });
-    },
-    [setMessages, sendMessageWithBody],
   );
 
   const handleRegenerate = useCallback(
@@ -294,19 +211,17 @@ function ConversationDemo({ models, defaultModel }: ConversationDemoProps) {
       // If streaming, stop the current stream first
       if (status === "streaming") {
         stop();
-
-        // Use a more reliable approach - find the user message immediately
-        // before the stream state changes
-        const currentMessages = [...messages]; // Capture current state
+        // Capture current state before stream changes
+        const currentMessages = [...messages];
         setTimeout(() => {
-          performRegenerateWithMessages(messageIndex, currentMessages);
+          performRegenerate(messageIndex, currentMessages);
         }, 100);
         return;
       }
 
       performRegenerate(messageIndex);
     },
-    [status, stop, performRegenerate, messages, performRegenerateWithMessages],
+    [status, stop, performRegenerate, messages],
   );
 
   return (
@@ -331,186 +246,71 @@ function ConversationDemo({ models, defaultModel }: ConversationDemoProps) {
                 </Suggestions>
               </>
             ) : (
-              messages.map((message, messageIndex) => {
-                // Separate images from other content for user messages
-                const imageParts =
-                  message.role === "user"
-                    ? message.parts.filter(
-                        (part) =>
-                          part.type === "file" &&
-                          part.mediaType?.startsWith("image/"),
-                      )
-                    : [];
+              messages.map((message, messageIndex) => (
+                <Fragment key={message.id}>
+                  <MessageRenderer
+                    message={message}
+                    messageIndex={messageIndex}
+                    messages={messages}
+                    status={status}
+                  />
 
-                return (
-                  <Fragment key={message.id}>
-                    {/* Render user images outside and above the message */}
-                    {message.role === "user" && imageParts.length > 0 && (
-                      <div className="-mb-2 flex w-full justify-end">
-                        <div className="flex max-w-60 flex-wrap gap-2">
-                          {imageParts.map(
-                            (part, i) =>
-                              part.type === "file" && (
-                                <ChatImage
-                                  key={`${message.id}-img-${i}`}
-                                  src={part.url}
-                                  alt={part.filename || "Uploaded image"}
+                  {/* Render sources for assistant messages */}
+                  {message.role === "assistant" &&
+                    (() => {
+                      const sources = extractSourcesFromMessage(message);
+                      if (sources.length > 0) {
+                        return (
+                          <Sources>
+                            <SourcesTrigger count={sources.length} />
+                            <SourcesContent>
+                              {sources.map((source, idx) => (
+                                <Source
+                                  key={`${message.id}-source-${idx}`}
+                                  href={source.url}
+                                  title={source.title}
                                 />
-                              ),
-                          )}
-                        </div>
-                      </div>
-                    )}
+                              ))}
+                            </SourcesContent>
+                          </Sources>
+                        );
+                      }
+                      return null;
+                    })()}
 
-                    <Message from={message.role}>
-                      <MessageContent variant="flat">
-                        {message.parts.map((part, i) => {
-                          switch (part.type) {
-                            case "reasoning":
-                              return (
-                                <Reasoning
-                                  key={`${message.id}-${i}`}
-                                  className="w-full"
-                                  isStreaming={
-                                    status === "streaming" &&
-                                    i === message.parts.length - 1 &&
-                                    message.id === messages.at(-1)?.id
-                                  }
-                                >
-                                  <ReasoningTrigger />
-                                  <ReasoningContent>
-                                    {part.text}
-                                  </ReasoningContent>
-                                </Reasoning>
-                              );
-                            case "text":
-                              // Skip empty text parts
-                              if (!part.text || part.text.trim() === "") {
-                                return null;
-                              }
-
-                              return (
-                                <Response
-                                  key={`${message.id}-${part.type}-${i}`}
-                                >
-                                  {part.text}
-                                </Response>
-                              );
-                            case "file":
-                              // For user messages, images are rendered above, so skip here
-                              if (
-                                message.role === "user" &&
-                                part.mediaType?.startsWith("image/")
-                              ) {
-                                return null;
-                              }
-                              // For assistant messages, render images inline
-                              if (part.mediaType?.startsWith("image/")) {
-                                return (
-                                  <ChatImage
-                                    key={`${message.id}-${part.type}-${i}`}
-                                    src={part.url}
-                                    alt={part.filename || "Uploaded image"}
-                                  />
-                                );
-                              }
-                              return null;
-                            default:
-                              // Handle tool calls
-                              if (isToolUIPart(part)) {
-                                return (
-                                  <ToolRenderer
-                                    key={`${message.id}-${part.type}-${i}`}
-                                    part={part}
-                                    messageId={message.id}
-                                    partIndex={i}
-                                  />
-                                );
-                              }
-                              // Handle experimental image parts
-                              if (
-                                "image" in part &&
-                                part.image &&
-                                typeof part.image === "object" &&
-                                "base64" in part.image
-                              ) {
-                                const imageData =
-                                  part.image as Experimental_GeneratedImage;
-                                return (
-                                  <Image
-                                    key={`${message.id}-${part.type}-${i}`}
-                                    base64={imageData.base64}
-                                    mediaType={imageData.mediaType}
-                                    alt="Generated image"
-                                  />
-                                );
-                              }
-                              return null;
+                  {message.role === "assistant" &&
+                    (messageIndex !== messages.length - 1 ||
+                      status !== "streaming") && (
+                      <Actions>
+                        <FeedbackActions messageId={message.id} />
+                        <Action
+                          onClick={() => {
+                            const textContent = extractTextFromMessage(message);
+                            navigator.clipboard.writeText(textContent);
+                          }}
+                          label="Copy"
+                          tooltip="Copy message"
+                        >
+                          <CopyIcon />
+                        </Action>
+                        <Action
+                          onClick={() => handleRegenerate(messageIndex)}
+                          label="Regenerate"
+                          tooltip={
+                            status === "streaming"
+                              ? "Stop current response and regenerate"
+                              : status === "submitted"
+                                ? "Please wait for response to complete"
+                                : "Regenerate response"
                           }
-                        })}
-                      </MessageContent>
-                    </Message>
-
-                    {/* Render sources for assistant messages */}
-                    {message.role === "assistant" &&
-                      (() => {
-                        const sources = extractSourcesFromMessage(message);
-                        if (sources.length > 0) {
-                          return (
-                            <Sources>
-                              <SourcesTrigger count={sources.length} />
-                              <SourcesContent>
-                                {sources.map((source, idx) => (
-                                  <Source
-                                    key={`${message.id}-source-${idx}`}
-                                    href={source.url}
-                                    title={source.title}
-                                  />
-                                ))}
-                              </SourcesContent>
-                            </Sources>
-                          );
-                        }
-                        return null;
-                      })()}
-
-                    {message.role === "assistant" &&
-                      (messageIndex !== messages.length - 1 ||
-                        status !== "streaming") && (
-                        <Actions>
-                          <FeedbackActions messageId={message.id} />
-                          <Action
-                            onClick={() => {
-                              const textContent = message.parts
-                                .filter((part) => part.type === "text")
-                                .map((part) => part.text)
-                                .join("\n");
-                              navigator.clipboard.writeText(textContent);
-                            }}
-                            label="Copy"
-                            tooltip="Copy message"
-                          >
-                            <Square2StackIcon />
-                          </Action>
-                          <Action
-                            onClick={() => handleRegenerate(messageIndex)}
-                            label="Regenerate"
-                            tooltip={
-                              status === "streaming"
-                                ? "Stop current response and regenerate"
-                                : status === "submitted"
-                                  ? "Please wait for response to complete"
-                                  : "Regenerate response"
-                            }
-                            disabled={status === "submitted"}
-                          >
-                            <ArrowPathIcon />
-                          </Action>
-                        </Actions>
-                      )}
-                  </Fragment>
-                );
-              })
+                          disabled={status === "submitted"}
+                        >
+                          <RefreshCcwIcon />
+                        </Action>
+                      </Actions>
+                    )}
+                </Fragment>
+              ))
             )}
           </ConversationContent>
           <ConversationScrollButton />
@@ -545,14 +345,14 @@ function ConversationDemo({ models, defaultModel }: ConversationDemoProps) {
                 onClick={() => setUseWebSearch(!useWebSearch)}
                 activeIcon={
                   <>
-                    <GlobeEuropeAfricaIcon className="size-4 group-hover:hidden" />
+                    <GlobeIcon className="size-4 group-hover:hidden" />
                     <XCircleIcon className="group:text-primary/40 text-muted-foreground hidden size-4 group-hover:block" />
                     <span className="hidden sm:inline">Search</span>
                   </>
                 }
                 inactiveIcon={
                   <>
-                    <GlobeEuropeAfricaIcon className="size-4" />
+                    <GlobeIcon className="size-4" />
                     <span className="hidden sm:inline">Search</span>
                   </>
                 }

@@ -24,7 +24,7 @@ export function Message({ className, from, ...props }: MessageProps) {
 }
 
 const messageContentVariants = cva(
-  "is-user:dark flex flex-col gap-2 overflow-visible rounded-lg group-[.is-assistant]:items-start group-[.is-user]:items-end max-w-full",
+  "is-user:dark flex flex-col gap-2 text-sm overflow-visible rounded-lg group-[.is-assistant]:items-start group-[.is-user]:items-end max-w-full",
   {
     variants: {
       variant: {

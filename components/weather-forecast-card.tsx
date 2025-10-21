@@ -45,7 +45,7 @@ export default function WeatherForecastCard({
       <div className="text-weather-foreground flex max-w-full flex-col items-start gap-4 rounded-lg bg-[image:var(--weather-gradient)] p-3 md:p-4">
         <div className="flex flex-col gap-1">
           <h5 className="text-xs font-medium opacity-90">
-            {data.forecastDays} Day Forecast for {data.location}
+            {data.forecastDays} Day Forecast
             {data.countryCode ? `, ${data.countryCode}` : ""}
           </h5>
         </div>

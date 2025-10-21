@@ -1,10 +1,5 @@
-import {
-  CalendarDaysIcon,
-  CloudIcon,
-  DevicePhoneMobileIcon,
-  GlobeAltIcon,
-} from "@heroicons/react/16/solid";
 import type { ToolUIPart } from "ai";
+import { Calendar, Cloud, Globe, Smartphone } from "lucide-react";
 
 // Helper function to check if a part is a ToolUIPart with improved type narrowing
 export function isToolUIPart(part: unknown): part is ToolUIPart {
@@ -24,16 +19,16 @@ export function getToolIcon(
   toolType: string,
 ): React.ComponentType<{ className?: string }> {
   if (toolType.includes("get_current_weather")) {
-    return CloudIcon;
+    return Cloud;
   }
   if (toolType.includes("get_weather_forecast")) {
-    return CalendarDaysIcon;
+    return Calendar;
   }
   if (toolType.includes("search_web")) {
-    return GlobeAltIcon;
+    return Globe;
   }
   if (toolType.includes("get_webpage_contents")) {
-    return DevicePhoneMobileIcon;
+    return Smartphone;
   }
   // Return a default icon component instead of undefined
   return () => null; // Default fallback component

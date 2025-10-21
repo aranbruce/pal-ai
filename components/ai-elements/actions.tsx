@@ -8,7 +8,7 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
-import { HandThumbDownIcon, HandThumbUpIcon } from "@heroicons/react/16/solid";
+import { ThumbsDown, ThumbsUp } from "lucide-react";
 import { usePostHog } from "posthog-js/react";
 import type { ComponentProps } from "react";
 import { useState } from "react";
@@ -113,7 +113,7 @@ export function FeedbackActions({ messageId }: FeedbackActionsProps) {
           feedback === "positive" && "text-green-600 dark:text-green-400",
         )}
       >
-        <HandThumbUpIcon />
+        <ThumbsUp />
       </Action>
       <Action
         onClick={() => handleFeedback("negative")}
@@ -124,7 +124,7 @@ export function FeedbackActions({ messageId }: FeedbackActionsProps) {
           feedback === "negative" && "text-red-600 dark:text-red-400",
         )}
       >
-        <HandThumbDownIcon />
+        <ThumbsDown />
       </Action>
     </>
   );
