@@ -18,14 +18,15 @@ import { Spinner } from "@/components/ui/spinner";
 import { Textarea } from "@/components/ui/textarea";
 import { Toggle } from "@/components/ui/toggle";
 import { cn } from "@/lib/utils";
-import {
-  ArrowUpIcon,
-  PhotoIcon,
-  PlusIcon,
-  StopIcon,
-} from "@heroicons/react/20/solid";
-import { PaperClipIcon, XMarkIcon } from "@heroicons/react/24/outline";
+import { ArrowUpIcon, StopIcon } from "@heroicons/react/16/solid";
 import type { ChatStatus, FileUIPart } from "ai";
+import {
+  ImageIcon,
+  PaperclipIcon,
+  PlusIcon,
+  RefreshCcwIcon,
+  XIcon,
+} from "lucide-react";
 import { nanoid } from "nanoid";
 import NextImage from "next/image";
 import {
@@ -99,7 +100,7 @@ export function PromptInputAttachment({
         />
       ) : (
         <div className="text-muted-foreground flex size-full items-center justify-center">
-          <PaperClipIcon className="size-4" />
+          <PaperclipIcon className="size-4" />
         </div>
       )}
       <Button
@@ -110,7 +111,7 @@ export function PromptInputAttachment({
         type="button"
         variant="outline"
       >
-        <XMarkIcon className="h-3 w-3" />
+        <XIcon className="h-3 w-3" />
       </Button>
     </div>
   );
@@ -184,7 +185,7 @@ export function PromptInputActionAddAttachments({
         attachments.openFileDialog();
       }}
     >
-      <PhotoIcon className="mr-2 size-4" /> {label}
+      <ImageIcon className="mr-2 size-4" /> {label}
     </DropdownMenuItem>
   );
 }
@@ -725,7 +726,7 @@ export function PromptInputSubmit({
   } else if (status === "streaming") {
     Icon = <StopIcon className="size-4" />;
   } else if (status === "error") {
-    Icon = <ArrowUpIcon className="!size-5" />;
+    Icon = <RefreshCcwIcon className="!size-5" />;
   }
 
   const handleClick = (e: React.MouseEvent<HTMLButtonElement>) => {

@@ -2,7 +2,7 @@
 
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
-import { CheckIcon, DocumentDuplicateIcon } from "@heroicons/react/24/outline";
+import { CheckIcon, CopyIcon } from "lucide-react";
 import type { ComponentProps, HTMLAttributes, ReactNode } from "react";
 import { createContext, useContext, useState } from "react";
 import { Prism as SyntaxHighlighter } from "react-syntax-highlighter";
@@ -134,7 +134,7 @@ export function CodeBlockCopyButton({
     }
   };
 
-  const Icon = isCopied ? CheckIcon : DocumentDuplicateIcon;
+  const Icon = isCopied ? CheckIcon : CopyIcon;
 
   return (
     <Button

@@ -1,7 +1,10 @@
 "use client";
 
-import { CheckIcon, ChevronRightIcon } from "@heroicons/react/24/outline";
-import { EllipsisHorizontalCircleIcon } from "@heroicons/react/24/solid";
+import {
+  CheckIcon,
+  ChevronRightIcon,
+  EllipsisHorizontalCircleIcon,
+} from "@heroicons/react/24/outline";
 import * as DropdownMenuPrimitive from "@radix-ui/react-dropdown-menu";
 import * as React from "react";
 
