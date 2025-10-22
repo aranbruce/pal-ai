@@ -1,22 +1,13 @@
 import type { PromptInputMessage } from "@/components/ai-elements/prompt-input";
 import type { UserLocation } from "@/lib/chat-types";
-import type { FileUIPart } from "ai";
+import type {
+  FileUIPart,
+  UIDataTypes,
+  UIMessage,
+  UIMessagePart,
+  UITools,
+} from "ai";
 import posthog from "posthog-js";
-
-interface MessagePart {
-  type: string;
-  text?: string;
-  url?: string;
-  filename?: string;
-  mediaType?: string;
-}
-
-interface Message {
-  role: string;
-  parts: MessagePart[];
-}
-
-type MessagesArray = Message[];
 
 export function createMessageBody(
   model: string,
@@ -52,19 +43,28 @@ export function validateMessage(message: PromptInputMessage): boolean {
   return hasText || hasAttachments;
 }
 
-export function extractTextFromMessage(message: Message): string {
+export function extractTextFromMessage(message: UIMessage): string {
   return message.parts
-    .filter((part: MessagePart) => part.type === "text")
-    .map((part: MessagePart) => part.text || "")
+    .filter((part: UIMessagePart<UIDataTypes, UITools>) => part.type === "text")
+    .map((part: UIMessagePart<UIDataTypes, UITools>) => {
+      if (part.type === "text") {
+        return part.text || "";
+      }
+      return "";
+    })
     .join("\n");
 }
 
-export function extractFilesFromMessage(message: Message): MessagePart[] {
-  return message.parts.filter((part: MessagePart) => part.type === "file");
+export function extractFilesFromMessage(
+  message: UIMessage,
+): UIMessagePart<UIDataTypes, UITools>[] {
+  return message.parts.filter(
+    (part: UIMessagePart<UIDataTypes, UITools>) => part.type === "file",
+  );
 }
 
 export function findPreviousUserMessage(
-  messages: MessagesArray,
+  messages: UIMessage[],
   currentIndex: number,
 ): number {
   for (let i = currentIndex - 1; i >= 0; i--) {
@@ -75,22 +75,26 @@ export function findPreviousUserMessage(
   return -1;
 }
 
-export function createRegenerateMessage(userMessage: Message): {
+export function createRegenerateMessage(userMessage: UIMessage): {
   text: string;
   files?: FileUIPart[];
 } {
   const textContent = extractTextFromMessage(userMessage);
   const filesContent = extractFilesFromMessage(userMessage);
 
-  // Convert MessagePart[] to FileUIPart[]
-  const fileUIParts: FileUIPart[] = filesContent
-    .filter((part) => part.type === "file" && part.url && part.mediaType)
-    .map((part) => ({
-      type: "file" as const,
-      url: part.url!,
-      mediaType: part.mediaType!,
-      name: part.filename || "file",
-    }));
+  // Convert UIMessagePart[] to FileUIPart[]
+  const fileUIParts: FileUIPart[] = [];
+
+  for (const part of filesContent) {
+    if (part.type === "file" && "url" in part && "mediaType" in part) {
+      fileUIParts.push({
+        type: "file" as const,
+        url: part.url!,
+        mediaType: part.mediaType!,
+        filename: ("filename" in part ? part.filename : undefined) || "file",
+      });
+    }
+  }
 
   return {
     text: textContent || "Sent with attachments",

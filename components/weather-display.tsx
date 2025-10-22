@@ -1,27 +1,7 @@
 "use client";
 
 import WeatherImage, { WeatherType } from "@/components/weather-image";
-
-interface WeatherResult {
-  location?: string;
-  latitude: number;
-  longitude: number;
-  units: "metric" | "imperial";
-  currentDate: number;
-  currentHour: number;
-  current: {
-    temp: number;
-    weather: string;
-  };
-  hourly: Array<{
-    temp: number;
-    weather: string;
-  }>;
-}
-
-interface WeatherDisplayProps {
-  data: WeatherResult;
-}
+import type { WeatherDisplayProps } from "@/lib/weather-types";
 
 export default function WeatherDisplay({ data }: WeatherDisplayProps) {
   const unitSymbol = data.units === "metric" ? "°C" : "°F";

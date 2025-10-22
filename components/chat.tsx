@@ -53,7 +53,7 @@ import type { ConversationDemoProps, UserLocation } from "@/lib/chat-types";
 import { extractSourcesFromMessage } from "@/lib/chat-utils";
 import { useChat } from "@ai-sdk/react";
 import { DefaultChatTransport, generateId } from "ai";
-import { CopyIcon, GlobeIcon, RefreshCcwIcon, XCircleIcon } from "lucide-react";
+import { CopyIcon, GlobeIcon, RefreshCcwIcon, XIcon } from "lucide-react";
 import { Fragment, useCallback, useEffect, useState } from "react";
 import { toast } from "sonner";
 
@@ -345,7 +345,7 @@ function ConversationDemo({ models, defaultModel }: ConversationDemoProps) {
                 activeIcon={
                   <>
                     <GlobeIcon className="size-4 group-hover:hidden" />
-                    <XCircleIcon className="group:text-primary/40 text-muted-foreground hidden size-4 group-hover:block" />
+                    <XIcon className="group:text-primary/40 text-muted-foreground hidden size-4 group-hover:block" />
                     <span className="hidden sm:inline">Search</span>
                   </>
                 }

@@ -8,34 +8,18 @@ import WeatherDisplay from "@/components/weather-display";
 import WeatherForecastCard, {
   WeatherForecastCardProps,
 } from "@/components/weather-forecast-card";
-import type { Experimental_GeneratedImage } from "ai";
+import type { WeatherResult } from "@/lib/weather-types";
+import type {
+  Experimental_GeneratedImage,
+  ToolUIPart,
+  UIDataTypes,
+  UIMessagePart,
+  UITools,
+} from "ai";
 import { Cloud, Globe, Search } from "lucide-react";
 
-interface WeatherResult {
-  location?: string;
-  latitude: number;
-  longitude: number;
-  units: "metric" | "imperial";
-  currentDate: number;
-  currentHour: number;
-  current: {
-    temp: number;
-    weather: string;
-  };
-  hourly: Array<{
-    temp: number;
-    weather: string;
-  }>;
-}
-
-interface ToolPart {
-  type: string;
-  state?: string;
-  output?: unknown;
-}
-
 interface ToolRendererProps {
-  part: ToolPart;
+  part: ToolUIPart<UITools>;
   messageId: string;
   index: number;
 }
@@ -69,7 +53,9 @@ function formatToolName(toolType: string): string {
     .join(" ");
 }
 
-function getStepStatus(part: ToolPart): "pending" | "active" | "complete" {
+function getStepStatus(
+  part: ToolUIPart<UITools>,
+): "pending" | "active" | "complete" {
   switch (part.state) {
     case "input-streaming":
       return "pending";
@@ -84,7 +70,7 @@ function getStepStatus(part: ToolPart): "pending" | "active" | "complete" {
   }
 }
 
-function renderSearchResults(part: ToolPart, messageId: string) {
+function renderSearchResults(part: ToolUIPart<UITools>, messageId: string) {
   if (
     !part.type.includes("search_web") ||
     !part.output ||
@@ -110,7 +96,7 @@ function renderSearchResults(part: ToolPart, messageId: string) {
   );
 }
 
-function renderWeatherDisplay(part: ToolPart) {
+function renderWeatherDisplay(part: ToolUIPart<UITools>) {
   const isWeatherTool =
     part.type.includes("get_current_weather") &&
     part.output &&
@@ -122,7 +108,7 @@ function renderWeatherDisplay(part: ToolPart) {
   return <WeatherDisplay data={part.output as WeatherResult} />;
 }
 
-function renderWeatherForecast(part: ToolPart) {
+function renderWeatherForecast(part: ToolUIPart<UITools>) {
   const isWeatherForecastTool =
     part.type.includes("get_weather_forecast") &&
     part.output &&
@@ -138,7 +124,7 @@ function renderWeatherForecast(part: ToolPart) {
   );
 }
 
-function renderCoordinates(part: ToolPart) {
+function renderCoordinates(part: ToolUIPart<UITools>) {
   const isCoordinateTool =
     part.type.includes("get_coordinates") &&
     part.output &&
@@ -180,7 +166,7 @@ function renderCoordinates(part: ToolPart) {
   );
 }
 
-function renderLocation(part: ToolPart) {
+function renderLocation(part: ToolUIPart<UITools>) {
   const isLocationTool =
     part.type.includes("get_location") &&
     part.output &&
@@ -258,7 +244,7 @@ export function GeneratedImageRenderer({
   messageId,
   index,
 }: {
-  part: ToolPart;
+  part: UIMessagePart<UIDataTypes, UITools>;
   messageId: string;
   index: number;
 }) {

@@ -8,31 +8,14 @@ import { ChatImage } from "@/components/ai-elements/chat-image";
 import { Message, MessageContent } from "@/components/ai-elements/message";
 import { Response } from "@/components/ai-elements/response";
 import { isToolUIPart } from "@/lib/chat-utils";
+import type { UIDataTypes, UIMessage, UIMessagePart, UITools } from "ai";
 import { LightbulbIcon } from "lucide-react";
 import { Fragment } from "react";
 import { GeneratedImageRenderer, ToolRenderer } from "./tool-renderer";
 
-interface MessagePart {
-  type: string;
-  text?: string;
-  url?: string;
-  filename?: string;
-  mediaType?: string;
-  image?: {
-    base64: string;
-    mediaType: string;
-  };
-}
-
-interface Message {
-  id: string;
-  role: string;
-  parts: MessagePart[];
-}
-
 interface MessageRendererProps {
-  message: Message;
-  messages: Message[];
+  message: UIMessage;
+  messages: UIMessage[];
   status: string;
 }
 
@@ -45,7 +28,7 @@ export function MessageRenderer({
   const imageParts =
     message.role === "user"
       ? message.parts.filter(
-          (part: MessagePart) =>
+          (part: UIMessagePart<UIDataTypes, UITools>) =>
             part.type === "file" && part.mediaType?.startsWith("image/"),
         )
       : [];
@@ -58,86 +41,90 @@ export function MessageRenderer({
   const reasoningAndToolParts: React.ReactNode[] = [];
   const otherParts: React.ReactNode[] = [];
 
-  message.parts.forEach((part: MessagePart, i: number) => {
-    switch (part.type) {
-      case "reasoning":
-        const isCurrentlyStreaming =
-          isStreaming && i === message.parts.length - 1;
-        const thinkingLabel = isCurrentlyStreaming
-          ? "Thinking..."
-          : "Thought for a few seconds";
+  message.parts.forEach(
+    (part: UIMessagePart<UIDataTypes, UITools>, i: number) => {
+      switch (part.type) {
+        case "reasoning":
+          const isCurrentlyStreaming =
+            isStreaming && i === message.parts.length - 1;
+          const thinkingLabel = isCurrentlyStreaming
+            ? "Thinking..."
+            : "Thought for a few seconds";
 
-        reasoningAndToolParts.push(
-          <ChainOfThoughtStep
-            key={`${message.id}-reasoning-${i}`}
-            icon={LightbulbIcon}
-            label={thinkingLabel}
-            status={isCurrentlyStreaming ? "active" : "complete"}
-          >
-            <div className="text-muted-foreground text-sm">{part.text}</div>
-          </ChainOfThoughtStep>,
-        );
-        break;
-
-      case "text":
-        // Skip empty text parts
-        if (!part.text || part.text.trim() === "") {
-          break;
-        }
-        otherParts.push(
-          <Response key={`${message.id}-${part.type}-${i}`}>
-            {part.text}
-          </Response>,
-        );
-        break;
-
-      case "file":
-        // For user messages, images are rendered above, so skip here
-        if (message.role === "user" && part.mediaType?.startsWith("image/")) {
-          break;
-        }
-        // For assistant messages, render images inline
-        if (part.mediaType?.startsWith("image/")) {
-          otherParts.push(
-            <ChatImage
-              key={`${message.id}-${part.type}-${i}`}
-              src={part.url || ""}
-              alt={part.filename || "Uploaded image"}
-            />,
-          );
-        }
-        break;
-
-      default:
-        // Handle tool calls
-        if (isToolUIPart(part)) {
           reasoningAndToolParts.push(
-            <ToolRenderer
-              key={`${message.id}-tool-${i}`}
-              part={part}
-              messageId={message.id}
-              index={i}
-            />,
+            <ChainOfThoughtStep
+              key={`${message.id}-reasoning-${i}`}
+              icon={LightbulbIcon}
+              label={thinkingLabel}
+              status={isCurrentlyStreaming ? "active" : "complete"}
+            >
+              <div className="text-muted-foreground text-sm wrap-break-word">
+                {part.text}
+              </div>
+            </ChainOfThoughtStep>,
           );
-        } else if (
-          "image" in part &&
-          part.image &&
-          typeof part.image === "object" &&
-          "base64" in part.image
-        ) {
-          // Handle experimental image parts
+          break;
+
+        case "text":
+          // Skip empty text parts
+          if (!part.text || part.text.trim() === "") {
+            break;
+          }
           otherParts.push(
-            <GeneratedImageRenderer
-              key={`${message.id}-${part.type}-${i}`}
-              part={part}
-              messageId={message.id}
-              index={i}
-            />,
+            <Response key={`${message.id}-${part.type}-${i}`}>
+              {part.text}
+            </Response>,
           );
-        }
-        break;
-    }
-  });
+          break;
+
+        case "file":
+          // For user messages, images are rendered above, so skip here
+          if (message.role === "user" && part.mediaType?.startsWith("image/")) {
+            break;
+          }
+          // For assistant messages, render images inline
+          if (part.mediaType?.startsWith("image/")) {
+            otherParts.push(
+              <ChatImage
+                key={`${message.id}-${part.type}-${i}`}
+                src={part.url || ""}
+                alt={part.filename || "Uploaded image"}
+              />,
+            );
+          }
+          break;
+
+        default:
+          // Handle tool calls
+          if (isToolUIPart(part)) {
+            reasoningAndToolParts.push(
+              <ToolRenderer
+                key={`${message.id}-tool-${i}`}
+                part={part}
+                messageId={message.id}
+                index={i}
+              />,
+            );
+          } else if (
+            "image" in part &&
+            part.image &&
+            typeof part.image === "object" &&
+            "base64" in part.image
+          ) {
+            // Handle experimental image parts
+            otherParts.push(
+              <GeneratedImageRenderer
+                key={`${message.id}-${part.type}-${i}`}
+                part={part}
+                messageId={message.id}
+                index={i}
+              />,
+            );
+          }
+          break;
+      }
+    },
+  );
 
   return (
     <Fragment key={message.id}>
@@ -146,7 +133,7 @@ export function MessageRenderer({
         <div className="-mb-2 flex w-full justify-end">
           <div className="flex max-w-60 flex-wrap gap-2">
             {imageParts.map(
-              (part: MessagePart, i: number) =>
+              (part: UIMessagePart<UIDataTypes, UITools>, i: number) =>
                 part.type === "file" && (
                   <ChatImage
                     key={`${message.id}-img-${i}`}
