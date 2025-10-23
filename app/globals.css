@@ -44,6 +44,46 @@
   --weather-foreground: oklch(1 0 0);
   --weather-muted: oklch(0.85 0.08 230);
   --weather-gradient: linear-gradient(to bottom, #569ce5, #224da4);
+  --primary-gradient: linear-gradient(
+    to bottom,
+    oklch(0.25 0 0),
+    oklch(0.205 0 0) 50%
+  );
+  --secondary-gradient: linear-gradient(
+    to bottom,
+    oklch(0.98 0 0),
+    oklch(0.97 0 0) 50%
+  );
+  --destructive-gradient: linear-gradient(
+    to bottom,
+    oklch(0.65 0.245 27.325),
+    oklch(0.577 0.245 27.325) 50%
+  );
+  --accent-gradient: linear-gradient(
+    to bottom,
+    oklch(0.98 0 0),
+    oklch(0.97 0 0) 50%
+  );
+  --primary-gradient-hover: linear-gradient(
+    to bottom,
+    oklch(0.22 0 0),
+    oklch(0.18 0 0) 50%
+  );
+  --secondary-gradient-hover: linear-gradient(
+    to bottom,
+    oklch(0.95 0 0),
+    oklch(0.92 0 0) 50%
+  );
+  --destructive-gradient-hover: linear-gradient(
+    to bottom,
+    oklch(0.6 0.245 27.325),
+    oklch(0.52 0.245 27.325) 50%
+  );
+  --accent-gradient-hover: linear-gradient(
+    to bottom,
+    oklch(0.95 0 0),
+    oklch(0.92 0 0) 50%
+  );
 }
 
 .dark {
@@ -83,6 +123,46 @@
   --weather-foreground: oklch(0.985 0 0);
   --weather-muted: oklch(0.65 0.1 230);
   --weather-gradient: linear-gradient(to bottom, #224da4, #111d37);
+  --primary-gradient: linear-gradient(
+    to bottom,
+    oklch(0.95 0 0),
+    oklch(0.922 0 0) 50%
+  );
+  --secondary-gradient: linear-gradient(
+    to bottom,
+    oklch(0.3 0 0),
+    oklch(0.269 0 0) 50%
+  );
+  --destructive-gradient: linear-gradient(
+    to bottom,
+    oklch(0.75 0.191 22.216),
+    oklch(0.704 0.191 22.216) 50%
+  );
+  --accent-gradient: linear-gradient(
+    to bottom,
+    oklch(0.3 0 0),
+    oklch(0.269 0 0) 50%
+  );
+  --primary-gradient-hover: linear-gradient(
+    to bottom,
+    oklch(0.9 0 0),
+    oklch(0.85 0 0) 50%
+  );
+  --secondary-gradient-hover: linear-gradient(
+    to bottom,
+    oklch(0.25 0 0),
+    oklch(0.22 0 0) 50%
+  );
+  --destructive-gradient-hover: linear-gradient(
+    to bottom,
+    oklch(0.7 0.191 22.216),
+    oklch(0.65 0.191 22.216) 50%
+  );
+  --accent-gradient-hover: linear-gradient(
+    to bottom,
+    oklch(0.25 0 0),
+    oklch(0.22 0 0) 50%
+  );
 }
 
 @theme {
@@ -131,6 +211,10 @@
   --color-weather-foreground: var(--weather-foreground);
   --color-weather-muted: var(--weather-muted);
   --color-weather-gradient: var(--weather-gradient);
+  --color-primary-gradient: var(--primary-gradient);
+  --color-secondary-gradient: var(--secondary-gradient);
+  --color-destructive-gradient: var(--destructive-gradient);
+  --color-accent-gradient: var(--accent-gradient);
 
   @keyframes message_appear {
     0% {
@@ -179,5 +263,32 @@
   }
   body {
     @apply bg-background text-foreground flex h-svh flex-col items-stretch justify-start overflow-y-hidden;
+  }
+}
+
+@layer components {
+  .bg-primary-gradient {
+    background: var(--primary-gradient);
+  }
+  .bg-secondary-gradient {
+    background: var(--secondary-gradient);
+  }
+  .bg-destructive-gradient {
+    background: var(--destructive-gradient);
+  }
+  .bg-accent-gradient {
+    background: var(--accent-gradient);
+  }
+  .hover\:bg-primary-gradient-hover:hover {
+    background: var(--primary-gradient-hover);
+  }
+  .hover\:bg-secondary-gradient-hover:hover {
+    background: var(--secondary-gradient-hover);
+  }
+  .hover\:bg-destructive-gradient-hover:hover {
+    background: var(--destructive-gradient-hover);
+  }
+  .hover\:bg-accent-gradient-hover:hover {
+    background: var(--accent-gradient-hover);
   }
 }

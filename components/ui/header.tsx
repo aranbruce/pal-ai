@@ -2,6 +2,7 @@ import Image from "next/image";
 import Link from "next/link";
 
 import { Button } from "@/components/ui/button";
+import { HeartIcon } from "@heroicons/react/24/solid";
 
 export default function Header() {
   return (
@@ -50,15 +51,7 @@ export default function Header() {
             rel="noopener noreferrer"
           >
             <Button aria-label="Buy me a coffee" variant="default">
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                width="18"
-                height="18"
-                viewBox="0 0 18 18"
-                fill="currentColor"
-              >
-                <path d="M1.62297 5.88638C1.62297 3.53397 3.52319 1.62297 5.87215 1.62297C7.21007 1.62297 8.08204 2.11258 8.6506 2.75435C8.78474 2.90576 8.90023 3.06458 9.00002 3.22253C9.09981 3.06458 9.21529 2.90576 9.34942 2.75435C9.91799 2.11258 10.79 1.62297 12.1279 1.62297C14.4768 1.62297 16.3771 3.53397 16.3771 5.88638C16.3771 8.08849 15.1216 10.2061 13.681 11.9631C12.3163 13.6274 10.7063 15.061 9.60721 16.0397C9.53573 16.1033 9.46642 16.1651 9.39949 16.2247C9.17188 16.4279 8.82816 16.4279 8.60055 16.2247C8.53362 16.1651 8.4643 16.1033 8.39283 16.0397C7.29371 15.061 5.68369 13.6274 4.31911 11.9631C2.87846 10.2061 1.62297 8.08849 1.62297 5.88638Z" />
-              </svg>
+              <HeartIcon className="text-primary-foreground size-4" />
               <div className="hidden sm:block">Buy me a coffee</div>
             </Button>
           </Link>

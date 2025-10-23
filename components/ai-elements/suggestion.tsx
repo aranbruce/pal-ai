@@ -35,7 +35,7 @@ const Suggestion = React.forwardRef<HTMLButtonElement, SuggestionProps>(
       <button
         ref={ref}
         className={cn(
-          "border-input bg-background hover:bg-accent hover:text-accent-foreground focus-visible:ring-ring inline-flex cursor-pointer items-center justify-center rounded-lg border px-4 py-2 text-sm font-medium transition-colors focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none disabled:pointer-events-none disabled:opacity-50",
+          "bg-secondary-gradient hover:bg-accent-gradient-hover hover:text-accent-foreground focus-visible:ring-ring border-input/60 inline-flex cursor-pointer items-center justify-center rounded-lg border px-4 py-2 text-sm font-medium transition-colors focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none disabled:pointer-events-none disabled:opacity-50",
           className,
         )}
         onClick={handleClick}

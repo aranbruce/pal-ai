@@ -18,15 +18,11 @@ import { Spinner } from "@/components/ui/spinner";
 import { Textarea } from "@/components/ui/textarea";
 import { Toggle } from "@/components/ui/toggle";
 import { cn } from "@/lib/utils";
-import { ArrowUpIcon, StopIcon } from "@heroicons/react/16/solid";
+import { StopIcon } from "@heroicons/react/16/solid";
+import { ArrowUpIcon } from "@heroicons/react/20/solid";
+
 import type { ChatStatus, FileUIPart } from "ai";
-import {
-  ImageIcon,
-  PaperclipIcon,
-  PlusIcon,
-  RefreshCcwIcon,
-  XIcon,
-} from "lucide-react";
+import { ImageIcon, PaperclipIcon, PlusIcon, XIcon } from "lucide-react";
 import { nanoid } from "nanoid";
 import NextImage from "next/image";
 import {
@@ -725,8 +721,6 @@ export function PromptInputSubmit({
     Icon = <Spinner className="size-4" />;
   } else if (status === "streaming") {
     Icon = <StopIcon className="size-4" />;
-  } else if (status === "error") {
-    Icon = <RefreshCcwIcon className="!size-5" />;
   }
 
   const handleClick = (e: React.MouseEvent<HTMLButtonElement>) => {

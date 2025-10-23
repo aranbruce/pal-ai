@@ -1,9 +1,9 @@
 // Chat suggestions
 export const DEFAULT_SUGGESTIONS = [
-  "What's the weather like in London today?",
-  "Search for the latest news on artificial intelligence",
-  "What are the current trends in web development?",
-  "Get me the weather forecast for New York this week",
+  "Weather in London today",
+  "Latest news on artificial intelligence",
+  "Current trends in web development?",
+  "Weather forecast for New York this week",
 ];
 
 // Geolocation constants
