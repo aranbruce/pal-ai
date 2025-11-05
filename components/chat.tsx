@@ -54,8 +54,25 @@ import { extractSourcesFromMessage } from "@/lib/chat-utils";
 import { useChat } from "@ai-sdk/react";
 import { DefaultChatTransport, generateId } from "ai";
 import { CopyIcon, GlobeIcon, RefreshCcwIcon, XIcon } from "lucide-react";
-import { Fragment, useCallback, useEffect, useState } from "react";
+import {
+  Fragment,
+  createElement,
+  useCallback,
+  useEffect,
+  useState,
+} from "react";
 import { toast } from "sonner";
+
+// Helper component to render provider logo (declared outside render to avoid ESLint error)
+function ProviderLogo({
+  provider,
+  className,
+}: {
+  provider: string;
+  className?: string;
+}) {
+  return createElement(getProviderLogo(provider), { className });
+}
 
 function ConversationDemo({ models, defaultModel }: ConversationDemoProps) {
   const [text, setText] = useState<string>("");
@@ -370,27 +387,29 @@ function ConversationDemo({ models, defaultModel }: ConversationDemoProps) {
                         <PromptInputModelSelectValue placeholder="Select model" />
                       );
                     }
-                    const Logo = getProviderLogo(selectedModel.provider);
                     return (
                       <div className="flex min-w-0 items-center gap-2 overflow-hidden">
-                        <Logo className="h-4 w-4 shrink-0" />
+                        <ProviderLogo
+                          provider={selectedModel.provider}
+                          className="h-4 w-4 shrink-0"
+                        />
                         <span className="truncate">{selectedModel.name}</span>
                       </div>
                     );
                   })()}
                 </PromptInputModelSelectTrigger>
                 <PromptInputModelSelectContent>
-                  {models.map((m) => {
-                    const Logo = getProviderLogo(m.provider);
-                    return (
-                      <PromptInputModelSelectItem key={m.id} value={m.id}>
-                        <div className="flex items-center gap-2">
-                          <Logo className="h-4 w-4 shrink-0" />
-                          <span>{m.name}</span>
-                        </div>
-                      </PromptInputModelSelectItem>
-                    );
-                  })}
+                  {models.map((m) => (
+                    <PromptInputModelSelectItem key={m.id} value={m.id}>
+                      <div className="flex items-center gap-2">
+                        <ProviderLogo
+                          provider={m.provider}
+                          className="h-4 w-4 shrink-0"
+                        />
+                        <span>{m.name}</span>
+                      </div>
+                    </PromptInputModelSelectItem>
+                  ))}
                 </PromptInputModelSelectContent>
               </PromptInputModelSelect>
             </PromptInputTools>
