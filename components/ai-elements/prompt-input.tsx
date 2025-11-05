@@ -8,6 +8,11 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import {
+  HoverCard,
+  HoverCardContent,
+  HoverCardTrigger,
+} from "@/components/ui/hover-card";
+import {
   Select,
   SelectContent,
   SelectItem,
@@ -79,37 +84,86 @@ export function PromptInputAttachment({
   ...props
 }: PromptInputAttachmentProps) {
   const attachments = usePromptInputAttachments();
+  const filename = data.filename || "";
+  const mediaType =
+    data.mediaType?.startsWith("image/") && data.url ? "image" : "file";
+  const isImage = mediaType === "image";
+  const attachmentLabel = filename || (isImage ? "Image" : "Attachment");
 
   return (
-    <div
-      className={cn("group relative h-14 w-14 rounded-md border", className)}
-      key={data.id}
-      {...props}
-    >
-      {data.mediaType?.startsWith("image/") && data.url ? (
-        <NextImage
-          alt={data.filename || ""}
-          className="size-full rounded-md object-cover"
-          height={56}
-          src={data.url}
-          width={56}
-        />
-      ) : (
-        <div className="text-muted-foreground flex size-full items-center justify-center">
-          <PaperclipIcon className="size-4" />
+    <HoverCard openDelay={0} closeDelay={0}>
+      <HoverCardTrigger asChild>
+        <div
+          className={cn(
+            "group border-border hover:bg-accent hover:text-accent-foreground dark:hover:bg-accent/50 relative flex h-8 cursor-default items-center gap-1.5 rounded-md border px-1.5 text-sm font-medium transition-all select-none",
+            className,
+          )}
+          key={data.id}
+          {...props}
+        >
+          <div className="relative size-5 shrink-0">
+            <div className="bg-background absolute inset-0 flex size-5 items-center justify-center overflow-hidden rounded transition-opacity group-hover:opacity-0">
+              {isImage ? (
+                <NextImage
+                  alt={filename || "attachment"}
+                  className="size-5 object-cover"
+                  height={20}
+                  src={data.url}
+                  unoptimized
+                  width={20}
+                />
+              ) : (
+                <div className="text-muted-foreground flex size-5 items-center justify-center">
+                  <PaperclipIcon className="size-3" />
+                </div>
+              )}
+            </div>
+            <Button
+              aria-label="Remove attachment"
+              className="absolute inset-0 size-5 cursor-pointer rounded p-0 opacity-0 transition-opacity group-hover:pointer-events-auto group-hover:opacity-100 [&>svg]:size-2.5"
+              onClick={(e) => {
+                e.stopPropagation();
+                attachments.remove(data.id);
+              }}
+              type="button"
+              variant="ghost"
+            >
+              <XIcon />
+              <span className="sr-only">Remove</span>
+            </Button>
+          </div>
+          <span className="flex-1 truncate">{attachmentLabel}</span>
         </div>
-      )}
-      <Button
-        aria-label="Remove attachment"
-        className="absolute -top-1.5 -right-1.5 h-6 w-6 rounded-full opacity-0 group-hover:opacity-100"
-        onClick={() => attachments.remove(data.id)}
-        size="icon"
-        type="button"
-        variant="outline"
-      >
-        <XIcon className="h-3 w-3" />
-      </Button>
-    </div>
+      </HoverCardTrigger>
+      <HoverCardContent align="start" className="w-auto p-2">
+        <div className="w-auto space-y-3">
+          {isImage && (
+            <div className="flex max-h-96 w-96 items-center justify-center overflow-hidden rounded-md border">
+              <NextImage
+                alt={filename || "attachment preview"}
+                className="max-h-full max-w-full object-contain"
+                height={384}
+                src={data.url}
+                unoptimized
+                width={448}
+              />
+            </div>
+          )}
+          <div className="flex items-center gap-2.5">
+            <div className="min-w-0 flex-1 space-y-1 px-0.5">
+              <h4 className="truncate text-sm leading-none font-semibold">
+                {filename || (isImage ? "Image" : "Attachment")}
+              </h4>
+              {data.mediaType && (
+                <p className="text-muted-foreground truncate font-mono text-xs">
+                  {data.mediaType}
+                </p>
+              )}
+            </div>
+          </div>
+        </div>
+      </HoverCardContent>
+    </HoverCard>
   );
 }
 
