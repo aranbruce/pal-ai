@@ -5,8 +5,11 @@ import {
   ChainOfThoughtStep,
 } from "@/components/ai-elements/chain-of-thought";
 import { ChatImage } from "@/components/ai-elements/chat-image";
-import { Message, MessageContent } from "@/components/ai-elements/message";
-import { Response } from "@/components/ai-elements/response";
+import {
+  Message,
+  MessageContent,
+  MessageResponse,
+} from "@/components/ai-elements/message";
 import { isToolUIPart } from "@/lib/chat-utils";
 import type { UIDataTypes, UIMessage, UIMessagePart, UITools } from "ai";
 import { LightbulbIcon } from "lucide-react";
@@ -71,9 +74,9 @@ export function MessageRenderer({
             break;
           }
           otherParts.push(
-            <Response key={`${message.id}-${part.type}-${i}`}>
+            <MessageResponse key={`${message.id}-${part.type}-${i}`}>
               {part.text}
-            </Response>,
+            </MessageResponse>,
           );
           break;
 
@@ -147,7 +150,7 @@ export function MessageRenderer({
       )}
 
       <Message from={message.role as "system" | "user" | "assistant"}>
-        <MessageContent variant="flat">
+        <MessageContent>
           <>
             {reasoningAndToolParts.length > 0 && (
               <ChainOfThought defaultOpen={isStreaming}>

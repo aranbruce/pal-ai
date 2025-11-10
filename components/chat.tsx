@@ -1,16 +1,17 @@
 "use client";
 
-import {
-  Action,
-  Actions,
-  FeedbackActions,
-} from "@/components/ai-elements/actions";
+import { FeedbackActions } from "@/components/ai-elements/actions";
 import {
   Conversation,
   ConversationContent,
   ConversationEmptyState,
   ConversationScrollButton,
 } from "@/components/ai-elements/conversation";
+import {
+  MessageAction,
+  MessageActions,
+  MessageToolbar,
+} from "@/components/ai-elements/message";
 import { MessageRenderer } from "@/components/ai-elements/message-renderer";
 import {
   PromptInput,
@@ -245,7 +246,7 @@ function ConversationDemo({ models, defaultModel }: ConversationDemoProps) {
     <div className="relative size-full pb-2 md:pb-4">
       <div className="flex h-full flex-col items-center">
         <Conversation className="w-full">
-          <ConversationContent className="mx-auto w-full max-w-3xl pt-20">
+          <ConversationContent className="mx-auto w-full max-w-3xl space-y-4 pt-20">
             {messages.length === 0 ? (
               <>
                 <ConversationEmptyState
@@ -297,33 +298,36 @@ function ConversationDemo({ models, defaultModel }: ConversationDemoProps) {
                   {message.role === "assistant" &&
                     (messageIndex !== messages.length - 1 ||
                       status !== "streaming") && (
-                      <Actions>
-                        <FeedbackActions messageId={message.id} />
-                        <Action
-                          onClick={() => {
-                            const textContent = extractTextFromMessage(message);
-                            navigator.clipboard.writeText(textContent);
-                          }}
-                          label="Copy"
-                          tooltip="Copy message"
-                        >
-                          <CopyIcon />
-                        </Action>
-                        <Action
-                          onClick={() => handleRegenerate(messageIndex)}
-                          label="Regenerate"
-                          tooltip={
-                            status === "streaming"
-                              ? "Stop current response and regenerate"
-                              : status === "submitted"
-                                ? "Please wait for response to complete"
-                                : "Regenerate response"
-                          }
-                          disabled={status === "submitted"}
-                        >
-                          <RefreshCcwIcon />
-                        </Action>
-                      </Actions>
+                      <MessageToolbar>
+                        <MessageActions>
+                          <FeedbackActions messageId={message.id} />
+                          <MessageAction
+                            onClick={() => {
+                              const textContent =
+                                extractTextFromMessage(message);
+                              navigator.clipboard.writeText(textContent);
+                            }}
+                            label="Copy"
+                            tooltip="Copy message"
+                          >
+                            <CopyIcon />
+                          </MessageAction>
+                          <MessageAction
+                            onClick={() => handleRegenerate(messageIndex)}
+                            label="Regenerate"
+                            tooltip={
+                              status === "streaming"
+                                ? "Stop current response and regenerate"
+                                : status === "submitted"
+                                  ? "Please wait for response to complete"
+                                  : "Regenerate response"
+                            }
+                            disabled={status === "submitted"}
+                          >
+                            <RefreshCcwIcon />
+                          </MessageAction>
+                        </MessageActions>
+                      </MessageToolbar>
                     )}
                 </Fragment>
               ))
