@@ -11,10 +11,12 @@ import { withTracing } from "@posthog/ai";
 import {
   consumeStream,
   convertToModelMessages,
+  extractReasoningMiddleware,
   smoothStream,
   stepCountIs,
   streamText,
   tool,
+  wrapLanguageModel,
   type UIMessage,
 } from "ai";
 import { PostHog } from "posthog-node";
@@ -60,7 +62,7 @@ export async function POST(request: Request) {
     const selectedModel = model || "openai/gpt-5"; // Use the model from request or default to gpt-5
     console.log("traceId: ", traceId);
 
-    const actualModel = withTracing(gateway(selectedModel), phClient, {
+    const tracedModel = withTracing(gateway(selectedModel), phClient, {
       posthogTraceId: traceId || crypto.randomUUID(),
       ...(userId && { posthogDistinctId: userId }),
       posthogProperties: {
@@ -68,6 +70,17 @@ export async function POST(request: Request) {
         paid: false,
       },
       posthogPrivacyMode: false,
+    });
+
+    // Apply reasoning extraction middleware
+    const reasoningMiddleware = extractReasoningMiddleware({
+      tagName: "thinking",
+      separator: "\n",
+    });
+
+    const actualModel = wrapLanguageModel({
+      model: tracedModel,
+      middleware: reasoningMiddleware,
     });
 
     const result = streamText({
@@ -258,7 +271,6 @@ export async function POST(request: Request) {
 
       onFinish: async () => {
         // You can implement chat saving here if needed
-        // console.log("Chat finished", response);
       },
 
       onAbort: ({ steps }) => {

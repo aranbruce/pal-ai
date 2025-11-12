@@ -6,5 +6,5 @@ export const maxDuration = 60;
 
 export default async function Page() {
   const models = await getModels();
-  return <Chat models={models} defaultModel="alibaba/qwen3-vl-thinking" />;
+  return <Chat models={models} defaultModel="moonshotai/kimi-k2" />;
 }
