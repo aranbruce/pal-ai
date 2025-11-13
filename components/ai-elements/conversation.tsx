@@ -3,7 +3,7 @@
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { ArrowDownIcon } from "lucide-react";
-import type { ComponentProps } from "react";
+import type { ComponentProps, HTMLAttributes } from "react";
 import { useCallback } from "react";
 import { StickToBottom, useStickToBottomContext } from "use-stick-to-bottom";
 
@@ -12,7 +12,7 @@ export type ConversationProps = ComponentProps<typeof StickToBottom>;
 export function Conversation({ className, ...props }: ConversationProps) {
   return (
     <StickToBottom
-      className={cn("relative flex-1 overflow-y-auto", className)}
+      className={cn("relative h-full min-h-0 flex-1", className)}
       initial="smooth"
       resize="smooth"
       role="log"
@@ -31,10 +31,15 @@ export function ConversationContent({
   className,
   ...props
 }: ConversationContentProps) {
-  return <StickToBottom.Content className={cn("p-4", className)} {...props} />;
+  return (
+    <StickToBottom.Content
+      className={cn("px-4 pt-4 pb-4", className)}
+      {...props}
+    />
+  );
 }
 
-export type ConversationEmptyStateProps = ComponentProps<"div"> & {
+export type ConversationEmptyStateProps = HTMLAttributes<HTMLDivElement> & {
   title?: string;
   description?: string;
 };

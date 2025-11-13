@@ -73,11 +73,15 @@ export async function POST(request: Request) {
     });
 
     // Apply reasoning extraction middleware
+    // The model uses <think> tags for reasoning
+    // tagName should match the tag name without angle brackets
+    // Note: The middleware extracts content between <tagName> and </tagName>
     const reasoningMiddleware = extractReasoningMiddleware({
-      tagName: "thinking",
-      separator: "\n",
+      tagName: "think",
     });
 
+    // Wrap the traced model with reasoning middleware
+    // The middleware should extract <think>...</think> content
     const actualModel = wrapLanguageModel({
       model: tracedModel,
       middleware: reasoningMiddleware,
@@ -273,9 +277,8 @@ export async function POST(request: Request) {
         // You can implement chat saving here if needed
       },
 
-      onAbort: ({ steps }) => {
+      onAbort: () => {
         // Handle cleanup when stream is aborted
-        console.log("Stream aborted after", steps.length, "steps");
         // You can add additional cleanup logic here, e.g.:
         // - Persist partial results to database
         // - Log abort events for analytics

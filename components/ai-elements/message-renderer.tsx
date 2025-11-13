@@ -41,8 +41,28 @@ export function MessageRenderer({
   const isStreaming = status === "streaming" && isLatestMessage;
 
   // Render all parts, grouping reasoning and tools into Chain of Thought
+  // Separate text parts that come before and after the chain of thought
   const reasoningAndToolParts: React.ReactNode[] = [];
+  const textBeforeChainOfThought: React.ReactNode[] = [];
+  const textAfterChainOfThought: React.ReactNode[] = [];
   const otherParts: React.ReactNode[] = [];
+
+  // Find the indices of the first and last reasoning/tool parts
+  let firstReasoningOrToolIndex = -1;
+  let lastReasoningOrToolIndex = -1;
+
+  message.parts.forEach(
+    (part: UIMessagePart<UIDataTypes, UITools>, i: number) => {
+      const isReasoningOrTool = part.type === "reasoning" || isToolUIPart(part);
+
+      if (isReasoningOrTool) {
+        if (firstReasoningOrToolIndex === -1) {
+          firstReasoningOrToolIndex = i;
+        }
+        lastReasoningOrToolIndex = i;
+      }
+    },
+  );
 
   message.parts.forEach(
     (part: UIMessagePart<UIDataTypes, UITools>, i: number) => {
@@ -54,6 +74,10 @@ export function MessageRenderer({
             ? "Thinking..."
             : "Thought for a few seconds";
 
+          // Reasoning parts should already be clean from extractReasoningMiddleware
+          // Display the reasoning content directly in the ChainOfThought component
+          const reasoningText = part.text || "";
+
           reasoningAndToolParts.push(
             <ChainOfThoughtStep
               key={`${message.id}-reasoning-${i}`}
@@ -62,7 +86,7 @@ export function MessageRenderer({
               status={isCurrentlyStreaming ? "active" : "complete"}
             >
               <div className="text-muted-foreground text-sm wrap-break-word">
-                {part.text}
+                {reasoningText}
               </div>
             </ChainOfThoughtStep>,
           );
@@ -73,11 +97,39 @@ export function MessageRenderer({
           if (!part.text || part.text.trim() === "") {
             break;
           }
-          otherParts.push(
+
+          // Check if text contains incomplete reasoning tags during streaming
+          // The middleware extracts complete <think>...</think> tags, but during streaming
+          // we might see incomplete tags that haven't been extracted yet
+          const hasOpeningTag = /<think[^>]*>/i.test(part.text);
+          const hasClosingTag = /<\/think>/i.test(part.text);
+
+          // During streaming, if we see an opening tag without a closing tag, skip this part
+          // as it will be converted to a reasoning part once the closing tag arrives
+          if (isStreaming && hasOpeningTag && !hasClosingTag) {
+            break;
+          }
+
+          const textComponent = (
             <MessageResponse key={`${message.id}-${part.type}-${i}`}>
               {part.text}
-            </MessageResponse>,
+            </MessageResponse>
           );
+
+          // Determine if this text comes before or after the chain of thought
+          if (firstReasoningOrToolIndex === -1) {
+            // No chain of thought, put all text in "after" (which will render normally)
+            textAfterChainOfThought.push(textComponent);
+          } else if (i < firstReasoningOrToolIndex) {
+            // Text comes before the chain of thought
+            textBeforeChainOfThought.push(textComponent);
+          } else if (i > lastReasoningOrToolIndex) {
+            // Text comes after the chain of thought
+            textAfterChainOfThought.push(textComponent);
+          } else {
+            // Text is between reasoning/tool parts, treat as after
+            textAfterChainOfThought.push(textComponent);
+          }
           break;
 
         case "file":
@@ -87,13 +139,35 @@ export function MessageRenderer({
           }
           // For assistant messages, render images inline
           if (part.mediaType?.startsWith("image/")) {
-            otherParts.push(
-              <ChatImage
-                key={`${message.id}-${part.type}-${i}`}
-                src={part.url || ""}
-                alt={part.filename || "Uploaded image"}
-              />,
-            );
+            // Determine if this image comes before or after the chain of thought
+            if (
+              firstReasoningOrToolIndex === -1 ||
+              i > lastReasoningOrToolIndex
+            ) {
+              textAfterChainOfThought.push(
+                <ChatImage
+                  key={`${message.id}-${part.type}-${i}`}
+                  src={part.url || ""}
+                  alt={part.filename || "Uploaded image"}
+                />,
+              );
+            } else if (i < firstReasoningOrToolIndex) {
+              textBeforeChainOfThought.push(
+                <ChatImage
+                  key={`${message.id}-${part.type}-${i}`}
+                  src={part.url || ""}
+                  alt={part.filename || "Uploaded image"}
+                />,
+              );
+            } else {
+              otherParts.push(
+                <ChatImage
+                  key={`${message.id}-${part.type}-${i}`}
+                  src={part.url || ""}
+                  alt={part.filename || "Uploaded image"}
+                />,
+              );
+            }
           }
           break;
 
@@ -115,14 +189,38 @@ export function MessageRenderer({
             "base64" in part.image
           ) {
             // Handle experimental image parts
-            otherParts.push(
-              <GeneratedImageRenderer
-                key={`${message.id}-${part.type}-${i}`}
-                part={part}
-                messageId={message.id}
-                index={i}
-              />,
-            );
+            // Determine if this image comes before or after the chain of thought
+            if (
+              firstReasoningOrToolIndex === -1 ||
+              i > lastReasoningOrToolIndex
+            ) {
+              textAfterChainOfThought.push(
+                <GeneratedImageRenderer
+                  key={`${message.id}-${part.type}-${i}`}
+                  part={part}
+                  messageId={message.id}
+                  index={i}
+                />,
+              );
+            } else if (i < firstReasoningOrToolIndex) {
+              textBeforeChainOfThought.push(
+                <GeneratedImageRenderer
+                  key={`${message.id}-${part.type}-${i}`}
+                  part={part}
+                  messageId={message.id}
+                  index={i}
+                />,
+              );
+            } else {
+              otherParts.push(
+                <GeneratedImageRenderer
+                  key={`${message.id}-${part.type}-${i}`}
+                  part={part}
+                  messageId={message.id}
+                  index={i}
+                />,
+              );
+            }
           }
           break;
       }
@@ -152,6 +250,7 @@ export function MessageRenderer({
       <Message from={message.role as "system" | "user" | "assistant"}>
         <MessageContent>
           <>
+            {textBeforeChainOfThought}
             {reasoningAndToolParts.length > 0 && (
               <ChainOfThought defaultOpen={isStreaming}>
                 <ChainOfThoughtHeader />
@@ -160,6 +259,7 @@ export function MessageRenderer({
                 </ChainOfThoughtContent>
               </ChainOfThought>
             )}
+            {textAfterChainOfThought}
             {otherParts}
           </>
         </MessageContent>

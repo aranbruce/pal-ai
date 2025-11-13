@@ -243,7 +243,7 @@ function ConversationDemo({ models, defaultModel }: ConversationDemoProps) {
   );
 
   return (
-    <div className="relative size-full pb-2 md:pb-4">
+    <div className="relative size-full overflow-hidden">
       <div className="flex h-full flex-col items-center">
         <Conversation className="w-full">
           <ConversationContent className="mx-auto w-full max-w-3xl space-y-4 pt-20">
@@ -274,6 +274,8 @@ function ConversationDemo({ models, defaultModel }: ConversationDemoProps) {
 
                   {/* Render sources for assistant messages */}
                   {message.role === "assistant" &&
+                    (messageIndex !== messages.length - 1 ||
+                      status !== "streaming") &&
                     (() => {
                       const sources = extractSourcesFromMessage(message);
                       if (sources.length > 0) {
@@ -338,7 +340,7 @@ function ConversationDemo({ models, defaultModel }: ConversationDemoProps) {
 
         <PromptInput
           onSubmit={handleSubmit}
-          className="mx-auto w-[calc(100%-2rem)] max-w-3xl"
+          className="mx-auto mb-2 w-[calc(100%-2rem)] max-w-3xl md:mb-4"
           globalDrop
           multiple
         >

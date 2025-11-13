@@ -52,7 +52,7 @@ export const MessageContent = ({
 }: MessageContentProps) => (
   <div
     className={cn(
-      "is-user:dark flex w-fit flex-col gap-2 overflow-hidden text-sm",
+      "is-user:dark flex w-fit flex-col gap-4 overflow-hidden text-sm",
       "group-[.is-user]:bg-secondary group-[.is-user]:text-foreground group-[.is-user]:ml-auto group-[.is-user]:rounded-lg group-[.is-user]:px-4 group-[.is-user]:py-3",
       "group-[.is-assistant]:text-foreground group-[.is-assistant]:w-full",
       className,
@@ -63,7 +63,7 @@ export const MessageContent = ({
   </div>
 );
 
-export type MessageActionsProps = ComponentProps<"div">;
+export type MessageActionsProps = HTMLAttributes<HTMLDivElement>;
 
 export const MessageActions = ({
   className,
@@ -412,7 +412,7 @@ export function MessageAttachment({
   );
 }
 
-export type MessageAttachmentsProps = ComponentProps<"div">;
+export type MessageAttachmentsProps = HTMLAttributes<HTMLDivElement>;
 
 export function MessageAttachments({
   children,
@@ -436,7 +436,7 @@ export function MessageAttachments({
   );
 }
 
-export type MessageToolbarProps = ComponentProps<"div">;
+export type MessageToolbarProps = HTMLAttributes<HTMLDivElement>;
 
 export const MessageToolbar = ({
   className,
