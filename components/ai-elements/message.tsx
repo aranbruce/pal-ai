@@ -381,16 +381,18 @@ export function MessageAttachment({
         </>
       ) : (
         <>
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <div className="bg-muted text-muted-foreground flex size-full shrink-0 items-center justify-center rounded-lg">
-                <PaperclipIcon className="size-4" />
-              </div>
-            </TooltipTrigger>
-            <TooltipContent>
-              <p>{attachmentLabel}</p>
-            </TooltipContent>
-          </Tooltip>
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <div className="bg-muted text-muted-foreground flex size-full shrink-0 items-center justify-center rounded-lg">
+                  <PaperclipIcon className="size-4" />
+                </div>
+              </TooltipTrigger>
+              <TooltipContent>
+                <p>{attachmentLabel}</p>
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
           {onRemove && (
             <Button
               aria-label="Remove attachment"
