@@ -89,7 +89,7 @@ export async function POST(request: Request) {
 
     const result = streamText({
       model: actualModel,
-      messages: convertToModelMessages(messages),
+      messages: await convertToModelMessages(messages),
       temperature: CHAT_CONFIG.TEMPERATURE,
       maxRetries: CHAT_CONFIG.MAX_RETRIES,
       stopWhen: stepCountIs(CHAT_CONFIG.MAX_STEPS),
