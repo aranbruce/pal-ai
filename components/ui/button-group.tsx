@@ -26,18 +26,14 @@ export function ButtonGroup({
 
 export type ButtonGroupTextProps = HTMLAttributes<HTMLSpanElement>;
 
-export function ButtonGroupText({
-  className,
-  ...props
-}: ButtonGroupTextProps) {
+export function ButtonGroupText({ className, ...props }: ButtonGroupTextProps) {
   return (
     <span
       className={cn(
-        "inline-flex items-center justify-center px-3 py-1.5 text-sm font-medium border border-input bg-background rounded-md",
+        "border-input bg-background inline-flex items-center justify-center rounded-md border px-3 py-1.5 text-sm font-medium",
         className,
       )}
       {...props}
     />
   );
 }
-

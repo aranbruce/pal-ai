@@ -18,8 +18,10 @@ const Suggestions = React.forwardRef<
 ));
 Suggestions.displayName = "Suggestions";
 
-interface SuggestionProps
-  extends Omit<React.ButtonHTMLAttributes<HTMLButtonElement>, "onClick"> {
+interface SuggestionProps extends Omit<
+  React.ButtonHTMLAttributes<HTMLButtonElement>,
+  "onClick"
+> {
   suggestion: string;
   onClick?: (suggestion: string) => void;
 }
