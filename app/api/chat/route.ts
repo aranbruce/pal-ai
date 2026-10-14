@@ -5,32 +5,28 @@ import { getWeatherForecast } from "@/app/actions/get-weather-forecast";
 import { getWebResults } from "@/app/actions/get-web-results";
 import { getWebpageContents } from "@/app/actions/get-webpage-contents";
 import { CHAT_CONFIG } from "@/lib/chat-constants";
+import { flushAiTelemetry } from "@/lib/flush-ai-telemetry";
 import { createGateway } from "@ai-sdk/gateway";
-import { withTracing } from "@posthog/ai";
 
 import {
   consumeStream,
   convertToModelMessages,
+  createUIMessageStreamResponse,
   extractReasoningMiddleware,
+  isStepCount,
   smoothStream,
-  stepCountIs,
   streamText,
+  toUIMessageStream,
   tool,
   wrapLanguageModel,
   type UIMessage,
 } from "ai";
-import { PostHog } from "posthog-node";
+import { after } from "next/server";
 import { z } from "zod";
 
 const gateway = createGateway({
   apiKey: process.env.AI_GATEWAY_API_KEY,
-  baseURL: "https://ai-gateway.vercel.sh/v1/ai",
 });
-
-const phClient = new PostHog(
-  "phc_7DDJRJb09qbR0TXIqI5HcU13J2eMx4rEB1ZknovWyDI",
-  { host: "https://eu.i.posthog.com" },
-);
 
 function getTodaysDate() {
   const today = new Date();
@@ -62,15 +58,8 @@ export async function POST(request: Request) {
     const selectedModel = model || "openai/gpt-5"; // Use the model from request or default to gpt-5
     console.log("traceId: ", traceId);
 
-    const tracedModel = withTracing(gateway(selectedModel), phClient, {
-      posthogTraceId: traceId || crypto.randomUUID(),
-      ...(userId && { posthogDistinctId: userId }),
-      posthogProperties: {
-        conversationId: traceId || "unknown",
-        paid: false,
-      },
-      posthogPrivacyMode: false,
-    });
+    // Send any batched PostHog spans once the response has finished streaming
+    after(flushAiTelemetry);
 
     // Apply reasoning extraction middleware
     // The model uses <think> tags for reasoning
@@ -80,20 +69,176 @@ export async function POST(request: Request) {
       tagName: "think",
     });
 
-    // Wrap the traced model with reasoning middleware
+    // Wrap the model with reasoning middleware
     // The middleware should extract <think>...</think> content
     const actualModel = wrapLanguageModel({
-      model: tracedModel,
+      model: gateway(selectedModel),
       middleware: reasoningMiddleware,
     });
+
+    const tools = {
+      search_web: tool({
+        description:
+          "Search the web for current information, news, articles, and other online content. Use this when you need up-to-date information or to find relevant web pages.",
+        inputSchema: z.object({
+          query: z.string().describe("The search query string"),
+          country: z
+            .string()
+            .optional()
+            .describe("Country code for localized results (e.g., 'us', 'gb')"),
+          freshness: z
+            .enum(["past-day", "past-week", "past-month", "past-year"])
+            .optional()
+            .describe("Filter results by how recent they are"),
+          count: z
+            .number()
+            .min(1)
+            .max(20)
+            .optional()
+            .default(8)
+            .describe("Number of results to return (1-20)"),
+        }),
+        execute: async ({ query, country, freshness, count }) => {
+          return await getWebResults({ query, country, freshness, count });
+        },
+      }),
+      get_webpage_contents: tool({
+        description:
+          "Extract and return the contents of one or more web pages. Useful for reading articles, documentation, or any web content.",
+        inputSchema: z.object({
+          urls: z
+            .array(z.url())
+            .min(1)
+            .describe("Array of URLs to extract content from"),
+        }),
+        execute: async ({ urls }) => {
+          return await getWebpageContents(urls);
+        },
+      }),
+      get_current_weather: tool({
+        description:
+          "Get the current weather and hourly forecast for a specific location using latitude and longitude coordinates. Returns temperature, weather conditions, and hourly forecast.",
+        inputSchema: z.object({
+          latitude: z
+            .number()
+            .min(-90)
+            .max(90)
+            .describe("Latitude of the location (-90 to 90)"),
+          longitude: z
+            .number()
+            .min(-180)
+            .max(180)
+            .describe("Longitude of the location (-180 to 180)"),
+          units: z
+            .enum(["metric", "imperial"])
+            .optional()
+            .default("metric")
+            .describe(
+              "Temperature units: 'metric' for Celsius, 'imperial' for Fahrenheit",
+            ),
+        }),
+        execute: async ({ latitude, longitude, units }) => {
+          return await getCurrentWeather({ latitude, longitude, units });
+        },
+      }),
+      get_weather_forecast: tool({
+        description:
+          "Get the weather forecast for a specific location for the next 1-7 days using latitude and longitude coordinates. Returns daily temperature and weather conditions.",
+        inputSchema: z.object({
+          latitude: z
+            .number()
+            .min(-90)
+            .max(90)
+            .describe("Latitude of the location (-90 to 90)"),
+          longitude: z
+            .number()
+            .min(-180)
+            .max(180)
+            .describe("Longitude of the location (-180 to 180)"),
+          forecastDays: z
+            .number()
+            .min(1)
+            .max(7)
+            .describe("Number of days to forecast (1-7)"),
+          units: z
+            .enum(["metric", "imperial"])
+            .optional()
+            .default("metric")
+            .describe(
+              "Temperature units: 'metric' for Celsius, 'imperial' for Fahrenheit",
+            ),
+        }),
+        execute: async ({ latitude, longitude, forecastDays, units }) => {
+          return await getWeatherForecast({
+            latitude,
+            longitude,
+            forecastDays,
+            units,
+          });
+        },
+      }),
+      get_coordinates_from_location: tool({
+        description:
+          "Convert a location name (city, town, etc.) to latitude and longitude coordinates. Useful for geocoding location names.",
+        inputSchema: z.object({
+          location: z
+            .string()
+            .describe("The name of the location (city, town, etc.)"),
+          countryCode: z
+            .string()
+            .optional()
+            .describe(
+              "Optional ISO 3166 country code (e.g., 'US', 'GB', 'CA') for more accurate results",
+            ),
+        }),
+        execute: async ({ location, countryCode }) => {
+          return await getCoordinatesFromLocation({ location, countryCode });
+        },
+      }),
+      get_location_from_coordinates: tool({
+        description:
+          "Convert latitude and longitude coordinates to a location name. Useful for reverse geocoding.",
+        inputSchema: z.object({
+          latitude: z
+            .number()
+            .min(-90)
+            .max(90)
+            .describe("Latitude of the location (-90 to 90)"),
+          longitude: z
+            .number()
+            .min(-180)
+            .max(180)
+            .describe("Longitude of the location (-180 to 180)"),
+        }),
+        execute: async ({ latitude, longitude }) => {
+          return await getLocationFromCoordinates({ latitude, longitude });
+        },
+      }),
+    };
 
     const result = streamText({
       model: actualModel,
       messages: await convertToModelMessages(messages),
       temperature: CHAT_CONFIG.TEMPERATURE,
       maxRetries: CHAT_CONFIG.MAX_RETRIES,
-      stopWhen: stepCountIs(CHAT_CONFIG.MAX_STEPS),
+      stopWhen: isStepCount(CHAT_CONFIG.MAX_STEPS),
       abortSignal: request.signal, // Forward the abort signal
+      runtimeContext: {
+        distinctId: userId,
+        sessionId: traceId,
+        properties: {
+          conversationId: traceId || "unknown",
+          paid: false,
+        },
+      },
+      telemetry: {
+        functionId: "chat",
+        includeRuntimeContext: {
+          distinctId: true,
+          sessionId: true,
+          properties: true,
+        },
+      },
       experimental_transform: smoothStream({
         delayInMs: CHAT_CONFIG.STREAM_DELAY_MS,
         chunking: "word", // optional: defaults to 'word'
@@ -107,149 +252,9 @@ export async function POST(request: Request) {
         }
         // Use default settings for other steps
       },
-      tools: {
-        search_web: tool({
-          description:
-            "Search the web for current information, news, articles, and other online content. Use this when you need up-to-date information or to find relevant web pages.",
-          inputSchema: z.object({
-            query: z.string().describe("The search query string"),
-            country: z
-              .string()
-              .optional()
-              .describe(
-                "Country code for localized results (e.g., 'us', 'gb')",
-              ),
-            freshness: z
-              .enum(["past-day", "past-week", "past-month", "past-year"])
-              .optional()
-              .describe("Filter results by how recent they are"),
-            count: z
-              .number()
-              .min(1)
-              .max(20)
-              .optional()
-              .default(8)
-              .describe("Number of results to return (1-20)"),
-          }),
-          execute: async ({ query, country, freshness, count }) => {
-            return await getWebResults({ query, country, freshness, count });
-          },
-        }),
-        get_webpage_contents: tool({
-          description:
-            "Extract and return the contents of one or more web pages. Useful for reading articles, documentation, or any web content.",
-          inputSchema: z.object({
-            urls: z
-              .array(z.url())
-              .min(1)
-              .describe("Array of URLs to extract content from"),
-          }),
-          execute: async ({ urls }) => {
-            return await getWebpageContents(urls);
-          },
-        }),
-        get_current_weather: tool({
-          description:
-            "Get the current weather and hourly forecast for a specific location using latitude and longitude coordinates. Returns temperature, weather conditions, and hourly forecast.",
-          inputSchema: z.object({
-            latitude: z
-              .number()
-              .min(-90)
-              .max(90)
-              .describe("Latitude of the location (-90 to 90)"),
-            longitude: z
-              .number()
-              .min(-180)
-              .max(180)
-              .describe("Longitude of the location (-180 to 180)"),
-            units: z
-              .enum(["metric", "imperial"])
-              .optional()
-              .default("metric")
-              .describe(
-                "Temperature units: 'metric' for Celsius, 'imperial' for Fahrenheit",
-              ),
-          }),
-          execute: async ({ latitude, longitude, units }) => {
-            return await getCurrentWeather({ latitude, longitude, units });
-          },
-        }),
-        get_weather_forecast: tool({
-          description:
-            "Get the weather forecast for a specific location for the next 1-7 days using latitude and longitude coordinates. Returns daily temperature and weather conditions.",
-          inputSchema: z.object({
-            latitude: z
-              .number()
-              .min(-90)
-              .max(90)
-              .describe("Latitude of the location (-90 to 90)"),
-            longitude: z
-              .number()
-              .min(-180)
-              .max(180)
-              .describe("Longitude of the location (-180 to 180)"),
-            forecastDays: z
-              .number()
-              .min(1)
-              .max(7)
-              .describe("Number of days to forecast (1-7)"),
-            units: z
-              .enum(["metric", "imperial"])
-              .optional()
-              .default("metric")
-              .describe(
-                "Temperature units: 'metric' for Celsius, 'imperial' for Fahrenheit",
-              ),
-          }),
-          execute: async ({ latitude, longitude, forecastDays, units }) => {
-            return await getWeatherForecast({
-              latitude,
-              longitude,
-              forecastDays,
-              units,
-            });
-          },
-        }),
-        get_coordinates_from_location: tool({
-          description:
-            "Convert a location name (city, town, etc.) to latitude and longitude coordinates. Useful for geocoding location names.",
-          inputSchema: z.object({
-            location: z
-              .string()
-              .describe("The name of the location (city, town, etc.)"),
-            countryCode: z
-              .string()
-              .optional()
-              .describe(
-                "Optional ISO 3166 country code (e.g., 'US', 'GB', 'CA') for more accurate results",
-              ),
-          }),
-          execute: async ({ location, countryCode }) => {
-            return await getCoordinatesFromLocation({ location, countryCode });
-          },
-        }),
-        get_location_from_coordinates: tool({
-          description:
-            "Convert latitude and longitude coordinates to a location name. Useful for reverse geocoding.",
-          inputSchema: z.object({
-            latitude: z
-              .number()
-              .min(-90)
-              .max(90)
-              .describe("Latitude of the location (-90 to 90)"),
-            longitude: z
-              .number()
-              .min(-180)
-              .max(180)
-              .describe("Longitude of the location (-180 to 180)"),
-          }),
-          execute: async ({ latitude, longitude }) => {
-            return await getLocationFromCoordinates({ latitude, longitude });
-          },
-        }),
-      },
+      tools,
 
-      system: `
+      instructions: `
       You are an AI designed to help users with their queries. You can perform tools like searching the web,
       help users find information from the web, get the weather or find out the latest news.
       IMPORTANT: Respond in markdown format
@@ -273,7 +278,7 @@ export async function POST(request: Request) {
       - When you use the "get_current_weather" tool, a beautiful interactive weather card is automatically displayed to the user showing the temperature, conditions, and hourly forecast.      
       `,
 
-      onFinish: async () => {
+      onEnd: async () => {
         // You can implement chat saving here if needed
       },
 
@@ -285,13 +290,17 @@ export async function POST(request: Request) {
       },
     });
 
-    return result.toUIMessageStreamResponse({
-      sendReasoning: true, // Enable reasoning in UI messages
-      sendSources: true, // Enable sources in UI messages
-      onFinish: async () => {
-        // Handle cleanup logic
-        // You can add abort-specific or normal completion logic here
-      },
+    return createUIMessageStreamResponse({
+      stream: toUIMessageStream({
+        stream: result.stream,
+        tools,
+        sendReasoning: true, // Enable reasoning in UI messages
+        sendSources: true, // Enable sources in UI messages
+        onEnd: async () => {
+          // Handle cleanup logic
+          // You can add abort-specific or normal completion logic here
+        },
+      }),
       consumeSseStream: consumeStream,
     });
   } catch (error) {
