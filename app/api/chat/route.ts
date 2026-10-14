@@ -4,12 +4,8 @@ import { getLocationFromCoordinates } from "@/app/actions/get-location-from-coor
 import { getWeatherForecast } from "@/app/actions/get-weather-forecast";
 import { getWebResults } from "@/app/actions/get-web-results";
 import { getWebpageContents } from "@/app/actions/get-webpage-contents";
-import {
-  flushAiTelemetry,
-  posthogTelemetry,
-  type AiTelemetryContext,
-} from "@/lib/ai-telemetry";
 import { CHAT_CONFIG } from "@/lib/chat-constants";
+import { flushAiTelemetry } from "@/lib/flush-ai-telemetry";
 import { createGateway } from "@ai-sdk/gateway";
 
 import {
@@ -94,9 +90,9 @@ export async function POST(request: Request) {
           conversationId: traceId || "unknown",
           paid: false,
         },
-      } satisfies AiTelemetryContext,
+      },
       telemetry: {
-        integrations: posthogTelemetry,
+        functionId: "chat",
         includeRuntimeContext: {
           distinctId: true,
           sessionId: true,
