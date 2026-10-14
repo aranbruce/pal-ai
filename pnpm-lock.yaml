@@ -6,8 +6,6 @@ settings:
 
 overrides:
   '@opentelemetry/core': ^2.8.0
-  '@opentelemetry/resources': ^2.8.0
-  '@opentelemetry/sdk-trace-base': ^2.8.0
 
 importers:
 
@@ -44,13 +42,13 @@ importers:
         specifier: ^0.223.0
         version: 0.223.0(@opentelemetry/api@1.9.1)
       '@opentelemetry/resources':
-        specifier: ^2.8.0
+        specifier: ^2.12.0
         version: 2.12.0(@opentelemetry/api@1.9.1)
       '@opentelemetry/sdk-node':
         specifier: ^0.223.0
         version: 0.223.0(@opentelemetry/api@1.9.1)
       '@opentelemetry/sdk-trace-base':
-        specifier: ^2.8.0
+        specifier: ^2.12.0
         version: 2.12.0(@opentelemetry/api@1.9.1)
       '@posthog/ai':
         specifier: ^8.13.7
@@ -1082,7 +1080,7 @@ packages:
       '@openai/agents': ^0.8.0
       '@opentelemetry/api': ^1.9.0
       '@opentelemetry/exporter-trace-otlp-http': '>=0.200.0 <1.0.0'
-      '@opentelemetry/sdk-trace-base': ^2.8.0
+      '@opentelemetry/sdk-trace-base': ^2.0.0
       langchain: '>=1.5.5 <2.0.0'
       openai: ^6.48.0
       posthog-node: ^5.0.0
@@ -2913,7 +2911,7 @@ packages:
     peerDependencies:
       '@opentelemetry/api': '*'
       '@opentelemetry/exporter-trace-otlp-proto': '*'
-      '@opentelemetry/sdk-trace-base': ^2.8.0
+      '@opentelemetry/sdk-trace-base': '*'
       openai: '*'
       ws: '>=7'
     peerDependenciesMeta:
