@@ -14,29 +14,44 @@ importers:
   .:
     dependencies:
       '@ai-sdk/anthropic':
-        specifier: ^3.0.130
-        version: 3.0.130(zod@4.6.7)
+        specifier: ^4.0.79
+        version: 4.0.79(zod@4.6.7)
       '@ai-sdk/gateway':
-        specifier: ^3.0.214
-        version: 3.0.214(zod@4.6.7)
+        specifier: ^4.0.113
+        version: 4.0.113(zod@4.6.7)
       '@ai-sdk/google':
-        specifier: ^3.0.132
-        version: 3.0.132(zod@4.6.7)
+        specifier: ^4.0.95
+        version: 4.0.95(zod@4.6.7)
       '@ai-sdk/mistral':
-        specifier: ^3.0.71
-        version: 3.0.71(zod@4.6.7)
+        specifier: ^4.0.63
+        version: 4.0.63(zod@4.6.7)
       '@ai-sdk/openai':
-        specifier: ^3.0.127
-        version: 3.0.127(zod@4.6.7)
+        specifier: ^4.0.93
+        version: 4.0.93(zod@4.6.7)
+      '@ai-sdk/otel':
+        specifier: ^1.0.140
+        version: 1.0.140(zod@4.6.7)
       '@ai-sdk/react':
-        specifier: ^3.0.309
-        version: 3.0.309(react@19.3.0)(zod@4.6.7)
+        specifier: ^4.0.143
+        version: 4.0.143(react@19.3.0)(zod@4.6.7)
       '@heroicons/react':
         specifier: ^2.2.0
         version: 2.2.0(react@19.3.0)
+      '@opentelemetry/api':
+        specifier: ^1.9.1
+        version: 1.9.1
+      '@opentelemetry/exporter-trace-otlp-http':
+        specifier: ^0.223.0
+        version: 0.223.0(@opentelemetry/api@1.9.1)
+      '@opentelemetry/resources':
+        specifier: ^2.12.0
+        version: 2.12.0(@opentelemetry/api@1.9.1)
+      '@opentelemetry/sdk-trace-base':
+        specifier: ^2.12.0
+        version: 2.12.0(@opentelemetry/api@1.9.1)
       '@posthog/ai':
         specifier: ^8.13.7
-        version: 8.13.7(@ai-sdk/provider@4.0.27)(@google/genai@1.52.0)(@langchain/core@1.2.17(@opentelemetry/api@1.9.1)(openai@6.49.0(ws@8.22.0)(zod@4.6.7))(ws@8.22.0))(@opentelemetry/api@1.9.1)(langchain@1.5.16(@langchain/core@1.2.17(@opentelemetry/api@1.9.1)(openai@6.49.0(ws@8.22.0)(zod@4.6.7))(ws@8.22.0))(@opentelemetry/api@1.9.1)(openai@6.49.0(ws@8.22.0)(zod@4.6.7))(react-dom@19.3.0(react@19.3.0))(react@19.3.0)(ws@8.22.0))(openai@6.49.0(ws@8.22.0)(zod@4.6.7))(posthog-node@5.56.1(@opentelemetry/api@1.9.1))
+        version: 8.13.7(@ai-sdk/provider@4.0.27)(@google/genai@1.52.0)(@langchain/core@1.2.17(@opentelemetry/api@1.9.1)(@opentelemetry/sdk-trace-base@2.12.0(@opentelemetry/api@1.9.1))(openai@6.49.0(ws@8.22.0)(zod@4.6.7))(ws@8.22.0))(@opentelemetry/api@1.9.1)(@opentelemetry/exporter-trace-otlp-http@0.223.0(@opentelemetry/api@1.9.1))(@opentelemetry/sdk-trace-base@2.12.0(@opentelemetry/api@1.9.1))(langchain@1.5.16(@langchain/core@1.2.17(@opentelemetry/api@1.9.1)(@opentelemetry/sdk-trace-base@2.12.0(@opentelemetry/api@1.9.1))(openai@6.49.0(ws@8.22.0)(zod@4.6.7))(ws@8.22.0))(@opentelemetry/api@1.9.1)(@opentelemetry/sdk-trace-base@2.12.0(@opentelemetry/api@1.9.1))(openai@6.49.0(ws@8.22.0)(zod@4.6.7))(react-dom@19.3.0(react@19.3.0))(react@19.3.0)(ws@8.22.0))(openai@6.49.0(ws@8.22.0)(zod@4.6.7))(posthog-node@5.56.1(@opentelemetry/api@1.9.1))
       '@radix-ui/react-avatar':
         specifier: ^1.3.1
         version: 1.3.1(@types/react-dom@19.3.0(@types/react@19.3.0))(@types/react@19.3.0)(react-dom@19.3.0(react@19.3.0))(react@19.3.0)
@@ -68,8 +83,8 @@ importers:
         specifier: ^0.7.14
         version: 0.7.14
       ai:
-        specifier: ^6.0.306
-        version: 6.0.306(zod@4.6.7)
+        specifier: ^7.0.140
+        version: 7.0.140(zod@4.6.7)
       class-variance-authority:
         specifier: ^0.7.1
         version: 0.7.1
@@ -188,53 +203,59 @@ importers:
 
 packages:
 
-  '@ai-sdk/anthropic@3.0.130':
-    resolution: {integrity: sha512-hHKP6xR+giH7TG0e2ibJLVJD+SGus0vZVKz66ZhHfA6vpXwOFFtVunbAnW66YiynPUlKCmh5S3eWCoxShFYrWw==}
-    engines: {node: '>=18'}
+  '@ai-sdk/anthropic@4.0.79':
+    resolution: {integrity: sha512-bBAmgc8IcwJDz7RkyIHaGNrN6k84oqZu6K2aYcdekYwab8PNcxvUgp/LG1S/tSU3SBoS+blFYuMjTQrIg8WHRQ==}
+    engines: {node: '>=22'}
     peerDependencies:
       zod: ^3.25.76 || ^4.1.8
 
-  '@ai-sdk/gateway@3.0.214':
-    resolution: {integrity: sha512-sBH8Vcc5eaqU4MKCce8x3vQgrjeIgKhHkVDjKcrTKpfkL7V7R21v7WCX/5mMWdAVhyz/Cnj8f7Bju63PQcNwvQ==}
-    engines: {node: '>=18'}
+  '@ai-sdk/gateway@4.0.113':
+    resolution: {integrity: sha512-fYov5+sH1A20/eN1PaL5z8bZ9RUq0CcL9yAsAhCHz/qUCKliDOg9HXjNYzOUlH6o21lIrp/aKQc8QLGkEEZGlQ==}
+    engines: {node: '>=22'}
     peerDependencies:
       zod: ^3.25.76 || ^4.1.8
 
-  '@ai-sdk/google@3.0.132':
-    resolution: {integrity: sha512-34xmZm/j+5TxUEpVas8A7u/rN6mJAsr1o0s3i/mV4BjdJwTX/Vi4lpzcw7LpScLBYf4A2RISf6yM8xmL/FBnqQ==}
-    engines: {node: '>=18'}
+  '@ai-sdk/google@4.0.95':
+    resolution: {integrity: sha512-EKIJUHuA1lvZqEg7Oeizop/TjyHPh01wtZ09kHf03Qd0MBQ4wCLpE/i9/8oXgDe/CVr7+TM9rAZE0ocjNt525Q==}
+    engines: {node: '>=22'}
     peerDependencies:
       zod: ^3.25.76 || ^4.1.8
 
-  '@ai-sdk/mistral@3.0.71':
-    resolution: {integrity: sha512-4nNAa17p1gxpOjQzoLnJbaHxYCL/RiGkBsRLUv9IbSJtegyNTX0gSyq0mLr1wh03bu6VX6KKZIG4ZBp/tymp3w==}
-    engines: {node: '>=18'}
+  '@ai-sdk/mcp@2.0.74':
+    resolution: {integrity: sha512-GrvM5rkNltQRsjDESieTFBSSNxTqk87gl4fbvU6eQ/osI4Mu7QhumCd6qLpVdqcgKleNlNs0u68HHVEe5hgnRg==}
+    engines: {node: '>=22'}
     peerDependencies:
       zod: ^3.25.76 || ^4.1.8
 
-  '@ai-sdk/openai@3.0.127':
-    resolution: {integrity: sha512-yCyL/+NCl88tsMi+RL6GpISRhUQHdHDtvOomwyhVG2PhQREq7HA9ndJns0QLdNfMJcmM+6g9gYNMO5Uqqidw3g==}
-    engines: {node: '>=18'}
+  '@ai-sdk/mistral@4.0.63':
+    resolution: {integrity: sha512-z6YhagpRqUKbbwxS0oq+Fravy2A3H0y7jvokjat7hWI1t3AGARBWAjIxt5WgJ2cYb/hWvDIR1YCMA425jIQldg==}
+    engines: {node: '>=22'}
     peerDependencies:
       zod: ^3.25.76 || ^4.1.8
 
-  '@ai-sdk/provider-utils@4.0.58':
-    resolution: {integrity: sha512-3YtZ9GmBNVLaiO6RSc/xrb5wY1RF0UYfCg6AQfdSaDWljX8EaSEC5s8PEch6mKXzOoM76v1yHK7CxYMJY2C1CA==}
-    engines: {node: '>=18.17'}
+  '@ai-sdk/openai@4.0.93':
+    resolution: {integrity: sha512-UUTCBDWwkNvsbukMstaT31K6wYnL73vp0X4gQL1/7W3LZlHT1wOZ6eZzlwj76s/O+QLXefWF6+ceRgPwTOX6FA==}
+    engines: {node: '>=22'}
     peerDependencies:
       zod: ^3.25.76 || ^4.1.8
 
-  '@ai-sdk/provider@3.0.18':
-    resolution: {integrity: sha512-IpefF5ssZVOZCD4Wu7zxt6PwZoGT2HLVjxpJ10Bjx6EAmRfLYJPjyrfxb0RYDlwvXnDb9nkQ7Do/oJVDuRFzew==}
-    engines: {node: '>=18'}
+  '@ai-sdk/otel@1.0.140':
+    resolution: {integrity: sha512-nKahLzz1/BjbgyPbEy4mHszr6qzJDH1v1Q5Tr9ZY/KBHmhN8qIB4jDPJSlWTr27UFxRlx9SXlfhbGdY+eskDcg==}
+    engines: {node: '>=22'}
+
+  '@ai-sdk/provider-utils@5.0.59':
+    resolution: {integrity: sha512-eaXBTkguxBFzS+KvxGRsbdkX9A7+R1g/C4jWx9mup0oSs3Cx5Mb427/byGpD2XL8SnMYT9O8LmXBmrgo+N3TJw==}
+    engines: {node: '>=22'}
+    peerDependencies:
+      zod: ^3.25.76 || ^4.1.8
 
   '@ai-sdk/provider@4.0.27':
     resolution: {integrity: sha512-TtWwm6SxFiPomlMIbTQa+yhJte+w4/oCsW+wJrJzMC3MqHpAY9e5dJF1Y4HxyKt3W2Csac0KiI76Ckio11TFYw==}
     engines: {node: '>=22'}
 
-  '@ai-sdk/react@3.0.309':
-    resolution: {integrity: sha512-3GQctTvYYOL4mbiIGSBOfgnDj+KUfGyJsY14Q8NiIisnNVXmaqyKsHu0Aw6grbNC5HEA19X5CY8zVvRK0xFpLw==}
-    engines: {node: '>=18'}
+  '@ai-sdk/react@4.0.143':
+    resolution: {integrity: sha512-v+DZm3iMvOKbawPk8FAKL6RhJfROXB6XJQuLj0ZPZ7eJnvebVMYGHFjjWVYP80NQ7xxctibjBdb7CNUAtbs4qQ==}
+    engines: {node: '>=22'}
     peerDependencies:
       react: ^18 || ~19.0.1 || ~19.1.2 || ^19.2.1
 
@@ -859,9 +880,71 @@ packages:
     resolution: {integrity: sha512-nn5ozdjYQpUCZlWGuxcJY/KpxkWQs4DcbMCmKojjyrYDEAGy4Ce19NN4v5MduafTwJlbKc99UA8YhSVqq9yPZA==}
     engines: {node: '>=12.4.0'}
 
+  '@opentelemetry/api-logs@0.223.0':
+    resolution: {integrity: sha512-Oepm6etVPFCn0VWB1t833iOTgz1eYBDUPxcrOR/XvwzD1+Ag9VzSPSrrKAFNJ/haatj+8CXbG47pZXvdNQKDJw==}
+    engines: {node: '>=8.0.0'}
+
   '@opentelemetry/api@1.9.1':
     resolution: {integrity: sha512-gLyJlPHPZYdAk1JENA9LeHejZe1Ti77/pTeFm/nMXmQH/HFZlcS/O2XJB+L8fkbrNSqhdtlvjBVjxwUYanNH5Q==}
     engines: {node: '>=8.0.0'}
+
+  '@opentelemetry/core@2.12.0':
+    resolution: {integrity: sha512-1HsSAuvT4/my0QrXWsyXFdWjKaPeCHsismKZgEEIb8NK13LP6DrMRlsUbvD/0F9mDWK3xDom9AMv3IscxgOnOQ==}
+    engines: {node: ^18.19.0 || >=20.6.0}
+    peerDependencies:
+      '@opentelemetry/api': '>=1.0.0 <1.10.0'
+
+  '@opentelemetry/exporter-trace-otlp-http@0.223.0':
+    resolution: {integrity: sha512-N8NWZaoQuF9e307S6xoVoI1lvxOOFkmBnynD42r02CPCfxoC95cJExAKBFrTD4C5iuhqthbzOZJN/W29ez4o/A==}
+    engines: {node: ^18.19.0 || >=20.6.0}
+    peerDependencies:
+      '@opentelemetry/api': ^1.3.0
+
+  '@opentelemetry/otlp-exporter-base@0.223.0':
+    resolution: {integrity: sha512-HlJMrJXjOqdQeoYNDHEvFTpaY2p9uWDK1GPl5AZ4wI5easzfoppTduOv47M8eiF+4ew42vfI/Xvt7THYgESnRw==}
+    engines: {node: ^18.19.0 || >=20.6.0}
+    peerDependencies:
+      '@opentelemetry/api': ^1.3.0
+
+  '@opentelemetry/otlp-transformer@0.223.0':
+    resolution: {integrity: sha512-oxmmPL5/MbSsO8K588V9n/XLIe7FZTK30Fo+/U/lAnt0ZIK/hoPM03n2WpSTZVbUBGTUE7aLyxnAzh7nE2PD4Q==}
+    engines: {node: ^18.19.0 || >=20.6.0}
+    peerDependencies:
+      '@opentelemetry/api': ^1.3.0
+
+  '@opentelemetry/resources@2.12.0':
+    resolution: {integrity: sha512-+rSRoOdln6NhXTVcBdHSlZxJDNzwxadeweK2ltZO3tVtfp6aklABc06xclDk6ovRR+EiGgIcSbh/6NgjFhnb3A==}
+    engines: {node: ^18.19.0 || >=20.6.0}
+    peerDependencies:
+      '@opentelemetry/api': '>=1.3.0 <1.10.0'
+
+  '@opentelemetry/sdk-logs@0.223.0':
+    resolution: {integrity: sha512-ApiAfUiUh6fmJt1GbsBuoeDn8D8IL42UvGyPUr8o1Z89ZeIiOCE1rZ78KkIUjEX3OV8Oorl9ez5Qjo43ZynDyw==}
+    engines: {node: ^18.19.0 || >=20.6.0}
+    peerDependencies:
+      '@opentelemetry/api': '>=1.4.0 <1.10.0'
+
+  '@opentelemetry/sdk-metrics@2.12.0':
+    resolution: {integrity: sha512-mVMaEHwCUJuY3S4Esn+nT0yQA3qCEGh+SOPJsXygU0Gl453WcsDNjtEa8EfdewMwoLyr1tlofB4fXytVpiXuow==}
+    engines: {node: ^18.19.0 || >=20.6.0}
+    peerDependencies:
+      '@opentelemetry/api': '>=1.9.0 <1.10.0'
+
+  '@opentelemetry/sdk-trace-base@2.12.0':
+    resolution: {integrity: sha512-JOERgZCxRM06FEJ5kEWxlSRChah6MmXDx3KwCruqEv/iEyLkTokCSemf2y1w8oIHtfrr8EVTpzebq/31vn2Cpg==}
+    engines: {node: ^18.19.0 || >=20.6.0}
+    peerDependencies:
+      '@opentelemetry/api': '>=1.3.0 <1.10.0'
+
+  '@opentelemetry/sdk-trace@2.12.0':
+    resolution: {integrity: sha512-ImVuRQ6faOsTi1Wna88s2avgrrf/iDgXPigIeynkUhjstMuoQUDOJXgkez2j1mlU4btjXcXBGa+q7qKFYR3GsA==}
+    engines: {node: ^18.19.0 || >=20.6.0}
+    peerDependencies:
+      '@opentelemetry/api': '>=1.3.0 <1.10.0'
+
+  '@opentelemetry/semantic-conventions@1.43.0':
+    resolution: {integrity: sha512-eSYWTm620tTk45EKSedaUL8MFYI8hW164hIXsgIHyxu3VobUB3fFCu5t0hQby6OoWRPsG1KkKUG2M5UadiLiVg==}
+    engines: {node: '>=14'}
 
   '@posthog/ai@8.13.7':
     resolution: {integrity: sha512-yKgjS6GTbKCBDWpPwDpTeCH1tlAjpjUjenyHuk3kX3nWPd4pVRJ6/u4zvvk/GxHKMN/pXhuwh5n5gmTfdz4R/Q==}
@@ -1683,6 +1766,9 @@ packages:
     resolution: {integrity: sha512-UycprH3T6n3jH0k44NHMa7pnFHGu/N05MjojYr+Mc6I7obkoLIJujSWwin1pCvdy/eOxrI/l3uDLQsmcrOb4ug==}
     engines: {node: '>= 20'}
 
+  '@workflow/serde@4.1.0':
+    resolution: {integrity: sha512-pav4F2BoirECWR7Nf1TKt+2eETcBj7jj4cBefQ8VXQCA6NPkaKeLfj/zMgi+3zYV5ZIBT4GuUiphsj0/b9hPQQ==}
+
   acorn-jsx@5.3.2:
     resolution: {integrity: sha512-rq9s+JNhf0IChjtDXxllJ7g41oZk5SlXtp0LHwyA5cejwn7vKmKp4pPri6YEePv2PU65sAsegbXtIinmDFDXgQ==}
     peerDependencies:
@@ -1701,9 +1787,9 @@ packages:
     resolution: {integrity: sha512-MnA+YT8fwfJPgBx3m60MNqakm30XOkyIoH1y6huTQvC0PwZG7ki8NacLBcrPbNoo8vEZy7Jpuk7+jMO+CUovTQ==}
     engines: {node: '>= 14'}
 
-  ai@6.0.306:
-    resolution: {integrity: sha512-q+tRS/lapAz7hEkLgFnPVMWqTp8o0TWIV273sNMfGqb/GlmjU3oNEvosCd4eRRz/KjU6nq6y8LT9CK7rL0+gbg==}
-    engines: {node: '>=18'}
+  ai@7.0.140:
+    resolution: {integrity: sha512-GHWqpUcY7EsRHc7jC99SqzpgabExb9w7anxDYa5N79AIVsGavIZFxZKhVQ/SORkuXFkPO4FG8cCSweaGutvwSw==}
+    engines: {node: '>=22'}
     peerDependencies:
       zod: ^3.25.76 || ^4.1.8
 
@@ -3168,6 +3254,10 @@ packages:
     resolution: {integrity: sha512-qcJu88Q2IWqJsDD529JKMdwGm/dvInW4HvQnRwiH9JtihJvzGOscDtHE3x1pBKeUOTysQ8kVmLnJ2kJu7yhcGA==}
     engines: {node: '>=12'}
 
+  pkce-challenge@5.0.1:
+    resolution: {integrity: sha512-wQ0b/W4Fr01qtpHlqSqspcj3EhBvimsdh0KlHhH8HRZnMsEa0ea2fTULOXOS9ccQr3om+GcGRk4e+isrZWV8qQ==}
+    engines: {node: '>=16.20.0'}
+
   possible-typed-array-names@1.1.0:
     resolution: {integrity: sha512-/+5VFTchJDoVj3bhoqi6UeymcD00DAwb1nJwamzPvHEszJ4FpF6SNNbUbOS8yI56qHzdV8eK0qEfOSiodkTdxg==}
     engines: {node: '>= 0.4'}
@@ -3685,9 +3775,9 @@ packages:
   undici-types@8.9.0:
     resolution: {integrity: sha512-KTDyRTYX8sWmKXAikPHHSyc63CRPETMctyjKFupcC6OBLXT3xsN0e9aF7m+mIXutFWpUXuedtowG7iLOzp0kQg==}
 
-  undici@6.29.0:
-    resolution: {integrity: sha512-R+RODBqp6i2pPflGdq+xIOUkl+RNfGgHwoinecKu/JCuf2uO06cOKoDbI2P7Dn6KcswdKwrczbU6IYJ6K8X+wg==}
-    engines: {node: '>=18.17'}
+  undici@7.30.0:
+    resolution: {integrity: sha512-dkrQXeHSaoamnItlYbmzG0wFYrM0ZwDxCIg0A7aKjTyyhh9svRzCNFEzV+Vm05/yehjCzjDZ31KXfGEjYSztDQ==}
+    engines: {node: '>=20.18.1'}
 
   unified@11.0.5:
     resolution: {integrity: sha512-xKvGhPWw3k84Qjh8bI3ZeJjqnyadK+GEFtazSfZv/rKeTkTjOJho6mFqh2SM96iIcZokxiOpg78GazTSg8+KHA==}
@@ -3833,58 +3923,72 @@ packages:
 
 snapshots:
 
-  '@ai-sdk/anthropic@3.0.130(zod@4.6.7)':
+  '@ai-sdk/anthropic@4.0.79(zod@4.6.7)':
     dependencies:
-      '@ai-sdk/provider': 3.0.18
-      '@ai-sdk/provider-utils': 4.0.58(zod@4.6.7)
+      '@ai-sdk/provider': 4.0.27
+      '@ai-sdk/provider-utils': 5.0.59(zod@4.6.7)
       zod: 4.6.7
 
-  '@ai-sdk/gateway@3.0.214(zod@4.6.7)':
+  '@ai-sdk/gateway@4.0.113(zod@4.6.7)':
     dependencies:
-      '@ai-sdk/provider': 3.0.18
-      '@ai-sdk/provider-utils': 4.0.58(zod@4.6.7)
+      '@ai-sdk/provider': 4.0.27
+      '@ai-sdk/provider-utils': 5.0.59(zod@4.6.7)
       '@vercel/oidc': 3.2.0
       zod: 4.6.7
 
-  '@ai-sdk/google@3.0.132(zod@4.6.7)':
+  '@ai-sdk/google@4.0.95(zod@4.6.7)':
     dependencies:
-      '@ai-sdk/provider': 3.0.18
-      '@ai-sdk/provider-utils': 4.0.58(zod@4.6.7)
+      '@ai-sdk/provider': 4.0.27
+      '@ai-sdk/provider-utils': 5.0.59(zod@4.6.7)
       zod: 4.6.7
 
-  '@ai-sdk/mistral@3.0.71(zod@4.6.7)':
+  '@ai-sdk/mcp@2.0.74(zod@4.6.7)':
     dependencies:
-      '@ai-sdk/provider': 3.0.18
-      '@ai-sdk/provider-utils': 4.0.58(zod@4.6.7)
+      '@ai-sdk/provider': 4.0.27
+      '@ai-sdk/provider-utils': 5.0.59(zod@4.6.7)
+      cross-spawn: 7.0.6
+      pkce-challenge: 5.0.1
       zod: 4.6.7
 
-  '@ai-sdk/openai@3.0.127(zod@4.6.7)':
+  '@ai-sdk/mistral@4.0.63(zod@4.6.7)':
     dependencies:
-      '@ai-sdk/provider': 3.0.18
-      '@ai-sdk/provider-utils': 4.0.58(zod@4.6.7)
+      '@ai-sdk/provider': 4.0.27
+      '@ai-sdk/provider-utils': 5.0.59(zod@4.6.7)
       zod: 4.6.7
 
-  '@ai-sdk/provider-utils@4.0.58(zod@4.6.7)':
+  '@ai-sdk/openai@4.0.93(zod@4.6.7)':
     dependencies:
-      '@ai-sdk/provider': 3.0.18
+      '@ai-sdk/provider': 4.0.27
+      '@ai-sdk/provider-utils': 5.0.59(zod@4.6.7)
+      zod: 4.6.7
+
+  '@ai-sdk/otel@1.0.140(zod@4.6.7)':
+    dependencies:
+      '@ai-sdk/provider': 4.0.27
+      '@opentelemetry/api': 1.9.1
+      ai: 7.0.140(zod@4.6.7)
+    transitivePeerDependencies:
+      - zod
+
+  '@ai-sdk/provider-utils@5.0.59(zod@4.6.7)':
+    dependencies:
+      '@ai-sdk/provider': 4.0.27
       '@standard-schema/spec': 1.1.0
+      '@workflow/serde': 4.1.0
       eventsource-parser: 3.1.1
-      undici: 6.29.0
+      undici: 7.30.0
       zod: 4.6.7
-
-  '@ai-sdk/provider@3.0.18':
-    dependencies:
-      json-schema: 0.4.0
 
   '@ai-sdk/provider@4.0.27':
     dependencies:
       json-schema: 0.4.0
-    optional: true
 
-  '@ai-sdk/react@3.0.309(react@19.3.0)(zod@4.6.7)':
+  '@ai-sdk/react@4.0.143(react@19.3.0)(zod@4.6.7)':
     dependencies:
-      '@ai-sdk/provider-utils': 4.0.58(zod@4.6.7)
-      ai: 6.0.306(zod@4.6.7)
+      '@ai-sdk/mcp': 2.0.74(zod@4.6.7)
+      '@ai-sdk/provider': 4.0.27
+      '@ai-sdk/provider-utils': 5.0.59(zod@4.6.7)
+      ai: 7.0.140(zod@4.6.7)
       react: 19.3.0
       swr: 2.5.1(react@19.3.0)
       throttleit: 2.1.0
@@ -4341,12 +4445,12 @@ snapshots:
 
   '@keyv/serialize@1.1.1': {}
 
-  '@langchain/core@1.2.17(@opentelemetry/api@1.9.1)(openai@6.49.0(ws@8.22.0)(zod@4.6.7))(ws@8.22.0)':
+  '@langchain/core@1.2.17(@opentelemetry/api@1.9.1)(@opentelemetry/sdk-trace-base@2.12.0(@opentelemetry/api@1.9.1))(openai@6.49.0(ws@8.22.0)(zod@4.6.7))(ws@8.22.0)':
     dependencies:
       '@cfworker/json-schema': 4.1.1
       '@standard-schema/spec': 1.1.0
       js-tiktoken: 1.0.21
-      langsmith: 0.10.13(@opentelemetry/api@1.9.1)(openai@6.49.0(ws@8.22.0)(zod@4.6.7))(ws@8.22.0)
+      langsmith: 0.10.13(@opentelemetry/api@1.9.1)(@opentelemetry/sdk-trace-base@2.12.0(@opentelemetry/api@1.9.1))(openai@6.49.0(ws@8.22.0)(zod@4.6.7))(ws@8.22.0)
       mustache: 4.2.0
       p-queue: 6.6.2
       zod: 4.6.7
@@ -4358,14 +4462,14 @@ snapshots:
       - ws
     optional: true
 
-  '@langchain/langgraph-checkpoint@1.2.0(@langchain/core@1.2.17(@opentelemetry/api@1.9.1)(openai@6.49.0(ws@8.22.0)(zod@4.6.7))(ws@8.22.0))':
+  '@langchain/langgraph-checkpoint@1.2.0(@langchain/core@1.2.17(@opentelemetry/api@1.9.1)(@opentelemetry/sdk-trace-base@2.12.0(@opentelemetry/api@1.9.1))(openai@6.49.0(ws@8.22.0)(zod@4.6.7))(ws@8.22.0))':
     dependencies:
-      '@langchain/core': 1.2.17(@opentelemetry/api@1.9.1)(openai@6.49.0(ws@8.22.0)(zod@4.6.7))(ws@8.22.0)
+      '@langchain/core': 1.2.17(@opentelemetry/api@1.9.1)(@opentelemetry/sdk-trace-base@2.12.0(@opentelemetry/api@1.9.1))(openai@6.49.0(ws@8.22.0)(zod@4.6.7))(ws@8.22.0)
     optional: true
 
-  '@langchain/langgraph-sdk@1.12.4(@langchain/core@1.2.17(@opentelemetry/api@1.9.1)(openai@6.49.0(ws@8.22.0)(zod@4.6.7))(ws@8.22.0))(react-dom@19.3.0(react@19.3.0))(react@19.3.0)':
+  '@langchain/langgraph-sdk@1.12.4(@langchain/core@1.2.17(@opentelemetry/api@1.9.1)(@opentelemetry/sdk-trace-base@2.12.0(@opentelemetry/api@1.9.1))(openai@6.49.0(ws@8.22.0)(zod@4.6.7))(ws@8.22.0))(react-dom@19.3.0(react@19.3.0))(react@19.3.0)':
     dependencies:
-      '@langchain/core': 1.2.17(@opentelemetry/api@1.9.1)(openai@6.49.0(ws@8.22.0)(zod@4.6.7))(ws@8.22.0)
+      '@langchain/core': 1.2.17(@opentelemetry/api@1.9.1)(@opentelemetry/sdk-trace-base@2.12.0(@opentelemetry/api@1.9.1))(openai@6.49.0(ws@8.22.0)(zod@4.6.7))(ws@8.22.0)
       '@langchain/protocol': 0.0.19
       '@types/json-schema': 7.0.15
       p-queue: 9.3.5
@@ -4375,11 +4479,11 @@ snapshots:
       react-dom: 19.3.0(react@19.3.0)
     optional: true
 
-  '@langchain/langgraph@1.5.0(@langchain/core@1.2.17(@opentelemetry/api@1.9.1)(openai@6.49.0(ws@8.22.0)(zod@4.6.7))(ws@8.22.0))(react-dom@19.3.0(react@19.3.0))(react@19.3.0)(zod@4.6.7)':
+  '@langchain/langgraph@1.5.0(@langchain/core@1.2.17(@opentelemetry/api@1.9.1)(@opentelemetry/sdk-trace-base@2.12.0(@opentelemetry/api@1.9.1))(openai@6.49.0(ws@8.22.0)(zod@4.6.7))(ws@8.22.0))(react-dom@19.3.0(react@19.3.0))(react@19.3.0)(zod@4.6.7)':
     dependencies:
-      '@langchain/core': 1.2.17(@opentelemetry/api@1.9.1)(openai@6.49.0(ws@8.22.0)(zod@4.6.7))(ws@8.22.0)
-      '@langchain/langgraph-checkpoint': 1.2.0(@langchain/core@1.2.17(@opentelemetry/api@1.9.1)(openai@6.49.0(ws@8.22.0)(zod@4.6.7))(ws@8.22.0))
-      '@langchain/langgraph-sdk': 1.12.4(@langchain/core@1.2.17(@opentelemetry/api@1.9.1)(openai@6.49.0(ws@8.22.0)(zod@4.6.7))(ws@8.22.0))(react-dom@19.3.0(react@19.3.0))(react@19.3.0)
+      '@langchain/core': 1.2.17(@opentelemetry/api@1.9.1)(@opentelemetry/sdk-trace-base@2.12.0(@opentelemetry/api@1.9.1))(openai@6.49.0(ws@8.22.0)(zod@4.6.7))(ws@8.22.0)
+      '@langchain/langgraph-checkpoint': 1.2.0(@langchain/core@1.2.17(@opentelemetry/api@1.9.1)(@opentelemetry/sdk-trace-base@2.12.0(@opentelemetry/api@1.9.1))(openai@6.49.0(ws@8.22.0)(zod@4.6.7))(ws@8.22.0))
+      '@langchain/langgraph-sdk': 1.12.4(@langchain/core@1.2.17(@opentelemetry/api@1.9.1)(@opentelemetry/sdk-trace-base@2.12.0(@opentelemetry/api@1.9.1))(openai@6.49.0(ws@8.22.0)(zod@4.6.7))(ws@8.22.0))(react-dom@19.3.0(react@19.3.0))(react@19.3.0)
       '@langchain/protocol': 0.0.19
       '@standard-schema/spec': 1.1.0
       zod: 4.6.7
@@ -4445,9 +4549,78 @@ snapshots:
 
   '@nolyfill/is-core-module@1.0.39': {}
 
+  '@opentelemetry/api-logs@0.223.0':
+    dependencies:
+      '@opentelemetry/api': 1.9.1
+
   '@opentelemetry/api@1.9.1': {}
 
-  '@posthog/ai@8.13.7(@ai-sdk/provider@4.0.27)(@google/genai@1.52.0)(@langchain/core@1.2.17(@opentelemetry/api@1.9.1)(openai@6.49.0(ws@8.22.0)(zod@4.6.7))(ws@8.22.0))(@opentelemetry/api@1.9.1)(langchain@1.5.16(@langchain/core@1.2.17(@opentelemetry/api@1.9.1)(openai@6.49.0(ws@8.22.0)(zod@4.6.7))(ws@8.22.0))(@opentelemetry/api@1.9.1)(openai@6.49.0(ws@8.22.0)(zod@4.6.7))(react-dom@19.3.0(react@19.3.0))(react@19.3.0)(ws@8.22.0))(openai@6.49.0(ws@8.22.0)(zod@4.6.7))(posthog-node@5.56.1(@opentelemetry/api@1.9.1))':
+  '@opentelemetry/core@2.12.0(@opentelemetry/api@1.9.1)':
+    dependencies:
+      '@opentelemetry/api': 1.9.1
+      '@opentelemetry/semantic-conventions': 1.43.0
+
+  '@opentelemetry/exporter-trace-otlp-http@0.223.0(@opentelemetry/api@1.9.1)':
+    dependencies:
+      '@opentelemetry/api': 1.9.1
+      '@opentelemetry/otlp-exporter-base': 0.223.0(@opentelemetry/api@1.9.1)
+      '@opentelemetry/otlp-transformer': 0.223.0(@opentelemetry/api@1.9.1)
+      '@opentelemetry/sdk-trace': 2.12.0(@opentelemetry/api@1.9.1)
+
+  '@opentelemetry/otlp-exporter-base@0.223.0(@opentelemetry/api@1.9.1)':
+    dependencies:
+      '@opentelemetry/api': 1.9.1
+      '@opentelemetry/core': 2.12.0(@opentelemetry/api@1.9.1)
+      '@opentelemetry/otlp-transformer': 0.223.0(@opentelemetry/api@1.9.1)
+
+  '@opentelemetry/otlp-transformer@0.223.0(@opentelemetry/api@1.9.1)':
+    dependencies:
+      '@opentelemetry/api': 1.9.1
+      '@opentelemetry/api-logs': 0.223.0
+      '@opentelemetry/core': 2.12.0(@opentelemetry/api@1.9.1)
+      '@opentelemetry/resources': 2.12.0(@opentelemetry/api@1.9.1)
+      '@opentelemetry/sdk-logs': 0.223.0(@opentelemetry/api@1.9.1)
+      '@opentelemetry/sdk-metrics': 2.12.0(@opentelemetry/api@1.9.1)
+      '@opentelemetry/sdk-trace': 2.12.0(@opentelemetry/api@1.9.1)
+
+  '@opentelemetry/resources@2.12.0(@opentelemetry/api@1.9.1)':
+    dependencies:
+      '@opentelemetry/api': 1.9.1
+      '@opentelemetry/core': 2.12.0(@opentelemetry/api@1.9.1)
+      '@opentelemetry/semantic-conventions': 1.43.0
+
+  '@opentelemetry/sdk-logs@0.223.0(@opentelemetry/api@1.9.1)':
+    dependencies:
+      '@opentelemetry/api': 1.9.1
+      '@opentelemetry/api-logs': 0.223.0
+      '@opentelemetry/core': 2.12.0(@opentelemetry/api@1.9.1)
+      '@opentelemetry/resources': 2.12.0(@opentelemetry/api@1.9.1)
+      '@opentelemetry/semantic-conventions': 1.43.0
+
+  '@opentelemetry/sdk-metrics@2.12.0(@opentelemetry/api@1.9.1)':
+    dependencies:
+      '@opentelemetry/api': 1.9.1
+      '@opentelemetry/core': 2.12.0(@opentelemetry/api@1.9.1)
+      '@opentelemetry/resources': 2.12.0(@opentelemetry/api@1.9.1)
+
+  '@opentelemetry/sdk-trace-base@2.12.0(@opentelemetry/api@1.9.1)':
+    dependencies:
+      '@opentelemetry/api': 1.9.1
+      '@opentelemetry/core': 2.12.0(@opentelemetry/api@1.9.1)
+      '@opentelemetry/resources': 2.12.0(@opentelemetry/api@1.9.1)
+      '@opentelemetry/sdk-trace': 2.12.0(@opentelemetry/api@1.9.1)
+      '@opentelemetry/semantic-conventions': 1.43.0
+
+  '@opentelemetry/sdk-trace@2.12.0(@opentelemetry/api@1.9.1)':
+    dependencies:
+      '@opentelemetry/api': 1.9.1
+      '@opentelemetry/core': 2.12.0(@opentelemetry/api@1.9.1)
+      '@opentelemetry/resources': 2.12.0(@opentelemetry/api@1.9.1)
+      '@opentelemetry/semantic-conventions': 1.43.0
+
+  '@opentelemetry/semantic-conventions@1.43.0': {}
+
+  '@posthog/ai@8.13.7(@ai-sdk/provider@4.0.27)(@google/genai@1.52.0)(@langchain/core@1.2.17(@opentelemetry/api@1.9.1)(@opentelemetry/sdk-trace-base@2.12.0(@opentelemetry/api@1.9.1))(openai@6.49.0(ws@8.22.0)(zod@4.6.7))(ws@8.22.0))(@opentelemetry/api@1.9.1)(@opentelemetry/exporter-trace-otlp-http@0.223.0(@opentelemetry/api@1.9.1))(@opentelemetry/sdk-trace-base@2.12.0(@opentelemetry/api@1.9.1))(langchain@1.5.16(@langchain/core@1.2.17(@opentelemetry/api@1.9.1)(@opentelemetry/sdk-trace-base@2.12.0(@opentelemetry/api@1.9.1))(openai@6.49.0(ws@8.22.0)(zod@4.6.7))(ws@8.22.0))(@opentelemetry/api@1.9.1)(@opentelemetry/sdk-trace-base@2.12.0(@opentelemetry/api@1.9.1))(openai@6.49.0(ws@8.22.0)(zod@4.6.7))(react-dom@19.3.0(react@19.3.0))(react@19.3.0)(ws@8.22.0))(openai@6.49.0(ws@8.22.0)(zod@4.6.7))(posthog-node@5.56.1(@opentelemetry/api@1.9.1))':
     dependencies:
       '@posthog/core': 1.59.0
       posthog-node: 5.56.1(@opentelemetry/api@1.9.1)
@@ -4456,9 +4629,11 @@ snapshots:
     optionalDependencies:
       '@ai-sdk/provider': 4.0.27
       '@google/genai': 1.52.0
-      '@langchain/core': 1.2.17(@opentelemetry/api@1.9.1)(openai@6.49.0(ws@8.22.0)(zod@4.6.7))(ws@8.22.0)
+      '@langchain/core': 1.2.17(@opentelemetry/api@1.9.1)(@opentelemetry/sdk-trace-base@2.12.0(@opentelemetry/api@1.9.1))(openai@6.49.0(ws@8.22.0)(zod@4.6.7))(ws@8.22.0)
       '@opentelemetry/api': 1.9.1
-      langchain: 1.5.16(@langchain/core@1.2.17(@opentelemetry/api@1.9.1)(openai@6.49.0(ws@8.22.0)(zod@4.6.7))(ws@8.22.0))(@opentelemetry/api@1.9.1)(openai@6.49.0(ws@8.22.0)(zod@4.6.7))(react-dom@19.3.0(react@19.3.0))(react@19.3.0)(ws@8.22.0)
+      '@opentelemetry/exporter-trace-otlp-http': 0.223.0(@opentelemetry/api@1.9.1)
+      '@opentelemetry/sdk-trace-base': 2.12.0(@opentelemetry/api@1.9.1)
+      langchain: 1.5.16(@langchain/core@1.2.17(@opentelemetry/api@1.9.1)(@opentelemetry/sdk-trace-base@2.12.0(@opentelemetry/api@1.9.1))(openai@6.49.0(ws@8.22.0)(zod@4.6.7))(ws@8.22.0))(@opentelemetry/api@1.9.1)(@opentelemetry/sdk-trace-base@2.12.0(@opentelemetry/api@1.9.1))(openai@6.49.0(ws@8.22.0)(zod@4.6.7))(react-dom@19.3.0(react@19.3.0))(react@19.3.0)(ws@8.22.0)
       openai: 6.49.0(ws@8.22.0)(zod@4.6.7)
 
   '@posthog/browser-common@0.9.4':
@@ -5235,6 +5410,8 @@ snapshots:
 
   '@vercel/oidc@3.2.0': {}
 
+  '@workflow/serde@4.1.0': {}
+
   acorn-jsx@5.3.2(acorn@8.19.0):
     dependencies:
       acorn: 8.19.0
@@ -5249,12 +5426,11 @@ snapshots:
 
   agent-base@7.1.4: {}
 
-  ai@6.0.306(zod@4.6.7):
+  ai@7.0.140(zod@4.6.7):
     dependencies:
-      '@ai-sdk/gateway': 3.0.214(zod@4.6.7)
-      '@ai-sdk/provider': 3.0.18
-      '@ai-sdk/provider-utils': 4.0.58(zod@4.6.7)
-      '@opentelemetry/api': 1.9.1
+      '@ai-sdk/gateway': 4.0.113(zod@4.6.7)
+      '@ai-sdk/provider': 4.0.27
+      '@ai-sdk/provider-utils': 5.0.59(zod@4.6.7)
       zod: 4.6.7
 
   ajv@6.15.0:
@@ -6486,12 +6662,12 @@ snapshots:
     dependencies:
       '@keyv/serialize': 1.1.1
 
-  langchain@1.5.16(@langchain/core@1.2.17(@opentelemetry/api@1.9.1)(openai@6.49.0(ws@8.22.0)(zod@4.6.7))(ws@8.22.0))(@opentelemetry/api@1.9.1)(openai@6.49.0(ws@8.22.0)(zod@4.6.7))(react-dom@19.3.0(react@19.3.0))(react@19.3.0)(ws@8.22.0):
+  langchain@1.5.16(@langchain/core@1.2.17(@opentelemetry/api@1.9.1)(@opentelemetry/sdk-trace-base@2.12.0(@opentelemetry/api@1.9.1))(openai@6.49.0(ws@8.22.0)(zod@4.6.7))(ws@8.22.0))(@opentelemetry/api@1.9.1)(@opentelemetry/sdk-trace-base@2.12.0(@opentelemetry/api@1.9.1))(openai@6.49.0(ws@8.22.0)(zod@4.6.7))(react-dom@19.3.0(react@19.3.0))(react@19.3.0)(ws@8.22.0):
     dependencies:
-      '@langchain/core': 1.2.17(@opentelemetry/api@1.9.1)(openai@6.49.0(ws@8.22.0)(zod@4.6.7))(ws@8.22.0)
-      '@langchain/langgraph': 1.5.0(@langchain/core@1.2.17(@opentelemetry/api@1.9.1)(openai@6.49.0(ws@8.22.0)(zod@4.6.7))(ws@8.22.0))(react-dom@19.3.0(react@19.3.0))(react@19.3.0)(zod@4.6.7)
-      '@langchain/langgraph-checkpoint': 1.2.0(@langchain/core@1.2.17(@opentelemetry/api@1.9.1)(openai@6.49.0(ws@8.22.0)(zod@4.6.7))(ws@8.22.0))
-      langsmith: 0.10.13(@opentelemetry/api@1.9.1)(openai@6.49.0(ws@8.22.0)(zod@4.6.7))(ws@8.22.0)
+      '@langchain/core': 1.2.17(@opentelemetry/api@1.9.1)(@opentelemetry/sdk-trace-base@2.12.0(@opentelemetry/api@1.9.1))(openai@6.49.0(ws@8.22.0)(zod@4.6.7))(ws@8.22.0)
+      '@langchain/langgraph': 1.5.0(@langchain/core@1.2.17(@opentelemetry/api@1.9.1)(@opentelemetry/sdk-trace-base@2.12.0(@opentelemetry/api@1.9.1))(openai@6.49.0(ws@8.22.0)(zod@4.6.7))(ws@8.22.0))(react-dom@19.3.0(react@19.3.0))(react@19.3.0)(zod@4.6.7)
+      '@langchain/langgraph-checkpoint': 1.2.0(@langchain/core@1.2.17(@opentelemetry/api@1.9.1)(@opentelemetry/sdk-trace-base@2.12.0(@opentelemetry/api@1.9.1))(openai@6.49.0(ws@8.22.0)(zod@4.6.7))(ws@8.22.0))
+      langsmith: 0.10.13(@opentelemetry/api@1.9.1)(@opentelemetry/sdk-trace-base@2.12.0(@opentelemetry/api@1.9.1))(openai@6.49.0(ws@8.22.0)(zod@4.6.7))(ws@8.22.0)
       zod: 4.6.7
     transitivePeerDependencies:
       - '@opentelemetry/api'
@@ -6503,11 +6679,12 @@ snapshots:
       - ws
     optional: true
 
-  langsmith@0.10.13(@opentelemetry/api@1.9.1)(openai@6.49.0(ws@8.22.0)(zod@4.6.7))(ws@8.22.0):
+  langsmith@0.10.13(@opentelemetry/api@1.9.1)(@opentelemetry/sdk-trace-base@2.12.0(@opentelemetry/api@1.9.1))(openai@6.49.0(ws@8.22.0)(zod@4.6.7))(ws@8.22.0):
     dependencies:
       p-queue: 6.6.2
     optionalDependencies:
       '@opentelemetry/api': 1.9.1
+      '@opentelemetry/sdk-trace-base': 2.12.0(@opentelemetry/api@1.9.1)
       openai: 6.49.0(ws@8.22.0)(zod@4.6.7)
       ws: 8.22.0
     optional: true
@@ -7196,6 +7373,8 @@ snapshots:
 
   picomatch@4.0.7: {}
 
+  pkce-challenge@5.0.1: {}
+
   possible-typed-array-names@1.1.0: {}
 
   postcss@8.5.23:
@@ -7795,7 +7974,7 @@ snapshots:
 
   undici-types@8.9.0: {}
 
-  undici@6.29.0: {}
+  undici@7.30.0: {}
 
   unified@11.0.5:
     dependencies:

@@ -4,33 +4,33 @@ import { getLocationFromCoordinates } from "@/app/actions/get-location-from-coor
 import { getWeatherForecast } from "@/app/actions/get-weather-forecast";
 import { getWebResults } from "@/app/actions/get-web-results";
 import { getWebpageContents } from "@/app/actions/get-webpage-contents";
+import {
+  flushAiTelemetry,
+  posthogTelemetry,
+  type AiTelemetryContext,
+} from "@/lib/ai-telemetry";
 import { CHAT_CONFIG } from "@/lib/chat-constants";
 import { createGateway } from "@ai-sdk/gateway";
-import { withTracing } from "@posthog/ai";
 
 import {
   consumeStream,
   convertToModelMessages,
+  createUIMessageStreamResponse,
   extractReasoningMiddleware,
+  isStepCount,
   smoothStream,
-  stepCountIs,
   streamText,
+  toUIMessageStream,
   tool,
   wrapLanguageModel,
   type UIMessage,
 } from "ai";
-import { PostHog } from "posthog-node";
+import { after } from "next/server";
 import { z } from "zod";
 
 const gateway = createGateway({
   apiKey: process.env.AI_GATEWAY_API_KEY,
-  baseURL: "https://ai-gateway.vercel.sh/v1/ai",
 });
-
-const phClient = new PostHog(
-  "phc_7DDJRJb09qbR0TXIqI5HcU13J2eMx4rEB1ZknovWyDI",
-  { host: "https://eu.i.posthog.com" },
-);
 
 function getTodaysDate() {
   const today = new Date();
@@ -62,15 +62,8 @@ export async function POST(request: Request) {
     const selectedModel = model || "openai/gpt-5"; // Use the model from request or default to gpt-5
     console.log("traceId: ", traceId);
 
-    const tracedModel = withTracing(gateway(selectedModel), phClient, {
-      posthogTraceId: traceId || crypto.randomUUID(),
-      ...(userId && { posthogDistinctId: userId }),
-      posthogProperties: {
-        conversationId: traceId || "unknown",
-        paid: false,
-      },
-      posthogPrivacyMode: false,
-    });
+    // Send any batched PostHog spans once the response has finished streaming
+    after(flushAiTelemetry);
 
     // Apply reasoning extraction middleware
     // The model uses <think> tags for reasoning
@@ -80,10 +73,10 @@ export async function POST(request: Request) {
       tagName: "think",
     });
 
-    // Wrap the traced model with reasoning middleware
+    // Wrap the model with reasoning middleware
     // The middleware should extract <think>...</think> content
     const actualModel = wrapLanguageModel({
-      model: tracedModel,
+      model: gateway(selectedModel),
       middleware: reasoningMiddleware,
     });
 
@@ -92,8 +85,24 @@ export async function POST(request: Request) {
       messages: await convertToModelMessages(messages),
       temperature: CHAT_CONFIG.TEMPERATURE,
       maxRetries: CHAT_CONFIG.MAX_RETRIES,
-      stopWhen: stepCountIs(CHAT_CONFIG.MAX_STEPS),
+      stopWhen: isStepCount(CHAT_CONFIG.MAX_STEPS),
       abortSignal: request.signal, // Forward the abort signal
+      runtimeContext: {
+        distinctId: userId,
+        sessionId: traceId,
+        properties: {
+          conversationId: traceId || "unknown",
+          paid: false,
+        },
+      } satisfies AiTelemetryContext,
+      telemetry: {
+        integrations: posthogTelemetry,
+        includeRuntimeContext: {
+          distinctId: true,
+          sessionId: true,
+          properties: true,
+        },
+      },
       experimental_transform: smoothStream({
         delayInMs: CHAT_CONFIG.STREAM_DELAY_MS,
         chunking: "word", // optional: defaults to 'word'
@@ -249,7 +258,7 @@ export async function POST(request: Request) {
         }),
       },
 
-      system: `
+      instructions: `
       You are an AI designed to help users with their queries. You can perform tools like searching the web,
       help users find information from the web, get the weather or find out the latest news.
       IMPORTANT: Respond in markdown format
@@ -273,7 +282,7 @@ export async function POST(request: Request) {
       - When you use the "get_current_weather" tool, a beautiful interactive weather card is automatically displayed to the user showing the temperature, conditions, and hourly forecast.      
       `,
 
-      onFinish: async () => {
+      onEnd: async () => {
         // You can implement chat saving here if needed
       },
 
@@ -285,13 +294,16 @@ export async function POST(request: Request) {
       },
     });
 
-    return result.toUIMessageStreamResponse({
-      sendReasoning: true, // Enable reasoning in UI messages
-      sendSources: true, // Enable sources in UI messages
-      onFinish: async () => {
-        // Handle cleanup logic
-        // You can add abort-specific or normal completion logic here
-      },
+    return createUIMessageStreamResponse({
+      stream: toUIMessageStream({
+        stream: result.stream,
+        sendReasoning: true, // Enable reasoning in UI messages
+        sendSources: true, // Enable sources in UI messages
+        onEnd: async () => {
+          // Handle cleanup logic
+          // You can add abort-specific or normal completion logic here
+        },
+      }),
       consumeSseStream: consumeStream,
     });
   } catch (error) {
