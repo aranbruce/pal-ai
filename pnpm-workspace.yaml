@@ -1,11 +1,8 @@
 allowBuilds:
-  '@google/genai': false
+  "@google/genai": false
   core-js: false
   core-js-pure: true
   esbuild: false
   protobufjs: false
   sharp: true
   unrs-resolver: false
-
-overrides:
-  '@opentelemetry/core': ^2.8.0
